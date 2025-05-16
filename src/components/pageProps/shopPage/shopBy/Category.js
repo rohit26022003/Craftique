@@ -8,25 +8,33 @@ const Category = () => {
   const items = [
     {
       _id: 990,
-      title: "New Arrivals",
+      title: "Clay and Pottery Crafts",
       icons: true,
     },
     {
       _id: 991,
-      title: "Gudgets",
+      title: "Wood Crafts",
     },
     {
       _id: 992,
-      title: "Accessories",
+      title: "Metal Crafts",
       icons: true,
     },
     {
       _id: 993,
-      title: "Electronics",
+      title: "Glass Crafts",
     },
     {
-      _id: 994,
-      title: "Others",
+      _id: 995,
+      title: "Beadwork and Jewelry",
+    },
+    {
+      _id: 996,
+      title: "Natural Material Crafts",
+    },
+    {
+      _id: 997,
+      title: "Decorative and Festive Crafts",
     },
   ];
   return (
@@ -40,14 +48,14 @@ const Category = () => {
               className="border-b-[1px] border-b-[#F0F0F0] pb-2 flex items-center justify-between"
             >
               {title}
-              {icons && (
+              {/* {icons && (
                 <span
                   onClick={() => setShowSubCatOne(!showSubCatOne)}
                   className="text-[10px] lg:text-xs cursor-pointer text-gray-400 hover:text-primeColor duration-300"
                 >
                   <ImPlus />
                 </span>
-              )}
+              )} */}
             </li>
           ))}
         </ul>

@@ -10,6 +10,7 @@ import Image from "../designLayouts/Image";
 
 const Banner = () => {
   const [dotActive, setDocActive] = useState(0);
+
   const settings = {
     dots: true,
     infinite: true,
@@ -99,20 +100,21 @@ const Banner = () => {
       },
     ],
   };
+
   return (
     <div className="w-full bg-white">
       <Slider {...settings}>
-        <Link to="/offer">
+        <Link to="/shop">
           <div>
             <Image imgSrc={bannerImgOne} />
           </div>
         </Link>
-        <Link to="/offer">
+        <Link to="/shop">
           <div>
             <Image imgSrc={bannerImgTwo} />
           </div>
         </Link>
-        <Link to="/offer">
+        <Link to="/shop">
           <div>
             <Image imgSrc={bannerImgThree} />
           </div>

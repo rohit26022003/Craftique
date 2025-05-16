@@ -5,140 +5,158 @@ import Breadcrumbs from "../../components/pageProps/Breadcrumbs";
 const Contact = () => {
   const location = useLocation();
   const [prevLocation, setPrevLocation] = useState("");
+
   useEffect(() => {
-    setPrevLocation(location.state.data);
+    setPrevLocation(location.state?.data || "Home");
   }, [location]);
 
-  const [clientName, setclientName] = useState("");
+  const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [messages, setMessages] = useState("");
 
-  // ========== Error Messages Start here ============
   const [errClientName, setErrClientName] = useState("");
   const [errEmail, setErrEmail] = useState("");
   const [errMessages, setErrMessages] = useState("");
-  // ========== Error Messages End here ==============
   const [successMsg, setSuccessMsg] = useState("");
 
   const handleName = (e) => {
-    setclientName(e.target.value);
+    setClientName(e.target.value);
     setErrClientName("");
   };
+
   const handleEmail = (e) => {
     setEmail(e.target.value);
     setErrEmail("");
   };
+
   const handleMessages = (e) => {
     setMessages(e.target.value);
     setErrMessages("");
   };
 
-  // ================= Email Validation start here =============
   const EmailValidation = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
+    return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email);
   };
-  // ================= Email Validation End here ===============
 
   const handlePost = (e) => {
     e.preventDefault();
+    let isValid = true;
+
     if (!clientName) {
       setErrClientName("Enter your Name");
+      isValid = false;
     }
     if (!email) {
       setErrEmail("Enter your Email");
-    } else {
-      if (!EmailValidation(email)) {
-        setErrEmail("Enter a Valid Email");
-      }
+      isValid = false;
+    } else if (!EmailValidation(email)) {
+      setErrEmail("Enter a Valid Email");
+      isValid = false;
     }
     if (!messages) {
-      setErrMessages("Enter your Messages");
+      setErrMessages("Enter your Message");
+      isValid = false;
     }
-    if (clientName && email && EmailValidation(email) && messages) {
+
+    if (isValid) {
       setSuccessMsg(
-        `Thank you dear ${clientName}, Your messages has been received successfully. Futher details will sent to you by your email at ${email}.`
+        `Thank you, ${clientName}. Your message has been received successfully. We’ll respond to ${email} shortly.`
       );
+      setClientName("");
+      setEmail("");
+      setMessages("");
     }
   };
 
   return (
-    <div className="max-w-container mx-auto px-4">
-      <Breadcrumbs title="Contact" prevLocation={prevLocation} />
-      {successMsg ? (
-        <p className="pb-20 w-96 font-medium text-green-500">{successMsg}</p>
-      ) : (
-        <form className="pb-20">
-          <h1 className="font-titleFont font-semibold text-3xl">
-            Fill up a Form
-          </h1>
-          <div className="w-[500px] h-auto py-6 flex flex-col gap-6">
-            <div>
-              <p className="text-base font-titleFont font-semibold px-2">
-                Name
-              </p>
-              <input
-                onChange={handleName}
-                value={clientName}
-                className="w-full py-1 border-b-2 px-2 text-base font-medium placeholder:font-normal placeholder:text-sm outline-none focus-within:border-primeColor"
-                type="text"
-                placeholder="Enter your name here"
-              />
-              {errClientName && (
-                <p className="text-red-500 text-sm font-titleFont font-semibold mt-1 px-2 flex items-center gap-1">
-                  <span className="text-sm italic font-bold">!</span>
-                  {errClientName}
-                </p>
-              )}
-            </div>
-            <div>
-              <p className="text-base font-titleFont font-semibold px-2">
-                Email
-              </p>
-              <input
-                onChange={handleEmail}
-                value={email}
-                className="w-full py-1 border-b-2 px-2 text-base font-medium placeholder:font-normal placeholder:text-sm outline-none focus-within:border-primeColor"
-                type="email"
-                placeholder="Enter your name here"
-              />
-              {errEmail && (
-                <p className="text-red-500 text-sm font-titleFont font-semibold mt-1 px-2 flex items-center gap-1">
-                  <span className="text-sm italic font-bold">!</span>
-                  {errEmail}
-                </p>
-              )}
-            </div>
-            <div>
-              <p className="text-base font-titleFont font-semibold px-2">
-                Messages
-              </p>
-              <textarea
-                onChange={handleMessages}
-                value={messages}
-                cols="30"
-                rows="3"
-                className="w-full py-1 border-b-2 px-2 text-base font-medium placeholder:font-normal placeholder:text-sm outline-none focus-within:border-primeColor resize-none"
-                type="text"
-                placeholder="Enter your name here"
-              ></textarea>
-              {errMessages && (
-                <p className="text-red-500 text-sm font-titleFont font-semibold mt-1 px-2 flex items-center gap-1">
-                  <span className="text-sm italic font-bold">!</span>
-                  {errMessages}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={handlePost}
-              className="w-44 bg-primeColor text-gray-200 h-10 font-titleFont text-base tracking-wide font-semibold hover:bg-black hover:text-white duration-200"
-            >
-              Post
-            </button>
+    <div className="max-w-container mx-auto px-4 py-10">
+      <Breadcrumbs title="Contact Us" prevLocation={prevLocation} />
+
+      <div className="flex flex-col lg:flex-row gap-10 items-start">
+        {/* Contact Form */}
+        <div className="flex-1 bg-white p-8 rounded-2xl shadow-lg">
+          {successMsg ? (
+            <p className="font-medium text-gray-700 text-xl">{successMsg}</p>
+          ) : (
+            <form onSubmit={handlePost} className="space-y-8">
+              <div>
+                {/* Name */}
+                <label className="block text-xl font-semibold text-gray-700">
+                  Name
+                </label>
+                <input
+                  onChange={handleName}
+                  value={clientName}
+                  className="w-full p-4 mt-3 rounded-md shadow-sm border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  type="text"
+                  placeholder="Enter your name"
+                />
+                {errClientName && (
+                  <p className="text-red-500 text-sm mt-1">{errClientName}</p>
+                )}
+              </div>
+
+              <div>
+                {/* Email */}
+                <label className="block text-xl font-semibold text-gray-700">
+                  Email
+                </label>
+                <input
+                  onChange={handleEmail}
+                  value={email}
+                  className="w-full p-4 mt-3 rounded-md shadow-sm border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  type="email"
+                  placeholder="Enter your email"
+                />
+                {errEmail && (
+                  <p className="text-red-500 text-sm mt-1">{errEmail}</p>
+                )}
+              </div>
+
+              <div>
+                {/* Message */}
+                <label className="block text-xl font-semibold text-gray-700">
+                  Message
+                </label>
+                <textarea
+                  onChange={handleMessages}
+                  value={messages}
+                  rows="5"
+                  className="w-full p-4 mt-3 rounded-md shadow-sm border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+                  placeholder="Enter your message"
+                ></textarea>
+                {errMessages && (
+                  <p className="text-red-500 text-sm mt-1">{errMessages}</p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-4 mt-6 bg-gray-800 text-white font-bold text-lg rounded-full hover:bg-gray-600 transition-all duration-300"
+              >
+                Submit
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* Map Section */}
+        <div className="flex-1 mt-10 lg:mt-0">
+          <div className="w-full h-[400px] rounded-xl overflow-hidden shadow-md">
+            <iframe
+              title="Company Location"
+              aria-label="Google Map showing company location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d483.4955191827785!2d88.43544160886479!3d22.57125652741123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a027531e81e2cf7%3A0x70b7429ad4b0a8ba!2sTechno%20India%20Group(TiiT%26SMIT)!5e0!3m2!1sen!2sin!4v1746903832818!5m2!1sen!2sin"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
-        </form>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,199 +1,262 @@
 import React, { useState } from "react";
-import { BsCheckCircleFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
-import { logoLight } from "../../assets/images";
+import { FcGoogle } from "react-icons/fc"; // Google icon
 
 const SignIn = () => {
-  // ============= Initial State Start here =============
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // ============= Initial State End here ===============
-  // ============= Error Msg Start here =================
   const [errEmail, setErrEmail] = useState("");
   const [errPassword, setErrPassword] = useState("");
-
-  // ============= Error Msg End here ===================
   const [successMsg, setSuccessMsg] = useState("");
-  // ============= Event Handler Start here =============
-  const handleEmail = (e) => {
-    setEmail(e.target.value);
-    setErrEmail("");
-  };
-  const handlePassword = (e) => {
-    setPassword(e.target.value);
-    setErrPassword("");
-  };
-  // ============= Event Handler End here ===============
-  const handleSignUp = (e) => {
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleSignIn = (e) => {
     e.preventDefault();
-
-    if (!email) {
-      setErrEmail("Enter your email");
-    }
-
-    if (!password) {
-      setErrPassword("Create a password");
-    }
-    // ============== Getting the value ==============
+    if (!email) setErrEmail("Enter your email");
+    if (!password) setErrPassword("Enter your password");
     if (email && password) {
-      setSuccessMsg(
-        `Hello dear, Thank you for your attempt. We are processing to validate your access. Till then stay connected and additional assistance will be sent to you by your mail at ${email}`
-      );
+      setSuccessMsg(`Hello! We are processing your login. Check your email at ${email}.`);
       setEmail("");
       setPassword("");
     }
   };
+
+  const handleGoogleLogin = () => {
+    alert("Google login clicked! Integrate Google Sign-In here.");
+  };
+
+  const handleForgot = () => setShowForgotPassword(true);
+  const handleCancel = () => {
+    setShowForgotPassword(false);
+    setForgotEmail("");
+    setOtp("");
+    setOtpSent(false);
+    setShowResetPassword(false);
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+  const handleVerifyEmail = () => {
+    if (forgotEmail) {
+      alert(`OTP sent to ${forgotEmail}`);
+      setOtpSent(true);
+    }
+  };
+  const handleVerifyOtp = () => {
+    if (otp) {
+      alert("OTP verified!");
+      setShowResetPassword(true);
+    }
+  };
+  const handleResetPassword = () => {
+    if (!newPassword || !confirmPassword) {
+      alert("Fill both password fields.");
+    } else if (newPassword !== confirmPassword) {
+      alert("Passwords do not match.");
+    } else {
+      alert("Password reset successfully!");
+      handleCancel();
+    }
+  };
+
   return (
-    <div className="w-full h-screen flex items-center justify-center">
-      <div className="w-1/2 hidden lgl:inline-flex h-full text-white">
-        <div className="w-[450px] h-full bg-primeColor px-10 flex flex-col gap-6 justify-center">
-          <Link to="/">
-            <img src={logoLight} alt="logoImg" className="w-28" />
-          </Link>
-          <div className="flex flex-col gap-1 -mt-1">
-            <h1 className="font-titleFont text-xl font-medium">
-              Stay sign in for more
-            </h1>
-            <p className="text-base">When you sign in, you are with us!</p>
-          </div>
-          <div className="w-[300px] flex items-start gap-3">
-            <span className="text-green-500 mt-1">
-              <BsCheckCircleFill />
-            </span>
-            <p className="text-base text-gray-300">
-              <span className="text-white font-semibold font-titleFont">
-                Get started fast with OREBI
-              </span>
-              <br />
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ab omnis
-              nisi dolor recusandae consectetur!
-            </p>
-          </div>
-          <div className="w-[300px] flex items-start gap-3">
-            <span className="text-green-500 mt-1">
-              <BsCheckCircleFill />
-            </span>
-            <p className="text-base text-gray-300">
-              <span className="text-white font-semibold font-titleFont">
-                Access all OREBI services
-              </span>
-              <br />
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ab omnis
-              nisi dolor recusandae consectetur!
-            </p>
-          </div>
-          <div className="w-[300px] flex items-start gap-3">
-            <span className="text-green-500 mt-1">
-              <BsCheckCircleFill />
-            </span>
-            <p className="text-base text-gray-300">
-              <span className="text-white font-semibold font-titleFont">
-                Trusted by online Shoppers
-              </span>
-              <br />
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ab omnis
-              nisi dolor recusandae consectetur!
-            </p>
-          </div>
-          <div className="flex items-center justify-between mt-10">
-            <Link to="/">
-              <p className="text-sm font-titleFont font-semibold text-gray-300 hover:text-white cursor-pointer duration-300">
-                © OREBI
-              </p>
-            </Link>
-            <p className="text-sm font-titleFont font-semibold text-gray-300 hover:text-white cursor-pointer duration-300">
-              Terms
-            </p>
-            <p className="text-sm font-titleFont font-semibold text-gray-300 hover:text-white cursor-pointer duration-300">
-              Privacy
-            </p>
-            <p className="text-sm font-titleFont font-semibold text-gray-300 hover:text-white cursor-pointer duration-300">
-              Security
-            </p>
-          </div>
+    <div className="w-full h-screen flex items-center justify-center bg-gray-100 relative">
+      {showForgotPassword && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur z-10"></div>
+      )}
+
+      {/* Left Panel */}
+      <div className={`hidden lgl:flex w-1/2 h-full bg-black relative justify-center items-center ${showForgotPassword ? "blur-sm" : ""}`}>
+        <div className="relative flex space-x-3">
+          {"SIGNIN".split("").map((letter, index) => (
+            <div key={index} className={`hanger swing delay-${index}`}>
+              <div className="rope"></div>
+              <div className="letter">{letter}</div>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="w-full lgl:w-1/2 h-full">
+
+      {/* Right Panel (Form) */}
+      <div className={`w-full lgl:w-1/2 h-full flex items-center justify-center ${showForgotPassword ? "blur-sm" : ""}`}>
         {successMsg ? (
-          <div className="w-full lgl:w-[500px] h-full flex flex-col justify-center">
-            <p className="w-full px-4 py-10 text-green-500 font-medium font-titleFont">
-              {successMsg}
-            </p>
+          <div className="max-w-md text-center space-y-6">
+            <p className="text-green-500 font-semibold">{successMsg}</p>
             <Link to="/signup">
-              <button
-                className="w-full h-10 bg-primeColor text-gray-200 rounded-md text-base font-titleFont font-semibold 
-            tracking-wide hover:bg-black hover:text-white duration-300"
-              >
-                Sign Up
-              </button>
+              <button className="w-full py-2 bg-black text-white rounded hover:bg-gray-900">Sign Up</button>
             </Link>
           </div>
         ) : (
-          <form className="w-full lgl:w-[450px] h-screen flex items-center justify-center">
-            <div className="px-6 py-4 w-full h-[90%] flex flex-col justify-center overflow-y-scroll scrollbar-thin scrollbar-thumb-primeColor">
-              <h1 className="font-titleFont underline underline-offset-4 decoration-[1px] font-semibold text-3xl mdl:text-4xl mb-4">
-                Sign in
-              </h1>
-              <div className="flex flex-col gap-3">
-                {/* Email */}
-                <div className="flex flex-col gap-.5">
-                  <p className="font-titleFont text-base font-semibold text-gray-600">
-                    Work Email
-                  </p>
-                  <input
-                    onChange={handleEmail}
-                    value={email}
-                    className="w-full h-8 placeholder:text-sm placeholder:tracking-wide px-4 text-base font-medium placeholder:font-normal rounded-md border-[1px] border-gray-400 outline-none"
-                    type="email"
-                    placeholder="john@workemail.com"
-                  />
-                  {errEmail && (
-                    <p className="text-sm text-red-500 font-titleFont font-semibold px-4">
-                      <span className="font-bold italic mr-1">!</span>
-                      {errEmail}
-                    </p>
-                  )}
-                </div>
-
-                {/* Password */}
-                <div className="flex flex-col gap-.5">
-                  <p className="font-titleFont text-base font-semibold text-gray-600">
-                    Password
-                  </p>
-                  <input
-                    onChange={handlePassword}
-                    value={password}
-                    className="w-full h-8 placeholder:text-sm placeholder:tracking-wide px-4 text-base font-medium placeholder:font-normal rounded-md border-[1px] border-gray-400 outline-none"
-                    type="password"
-                    placeholder="Create password"
-                  />
-                  {errPassword && (
-                    <p className="text-sm text-red-500 font-titleFont font-semibold px-4">
-                      <span className="font-bold italic mr-1">!</span>
-                      {errPassword}
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  onClick={handleSignUp}
-                  className="bg-primeColor hover:bg-black text-gray-200 hover:text-white cursor-pointer w-full text-base font-medium h-10 rounded-md  duration-300"
-                >
-                  Sign In
-                </button>
-                <p className="text-sm text-center font-titleFont font-medium">
-                  Don't have an Account?{" "}
-                  <Link to="/signup">
-                    <span className="hover:text-blue-600 duration-300">
-                      Sign up
-                    </span>
-                  </Link>
-                </p>
-              </div>
+          <form className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4">
+            <h1 className="text-3xl font-bold text-center text-black">Sign In</h1>
+            <div>
+              <label className="block text-sm font-medium">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrEmail("");
+                }}
+                className="w-full mt-1 p-2 border rounded"
+                placeholder="you@example.com"
+              />
+              {errEmail && <p className="text-red-500 text-sm">{errEmail}</p>}
             </div>
+            <div>
+              <label className="block text-sm font-medium">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrPassword("");
+                }}
+                className="w-full mt-1 p-2 border rounded"
+                placeholder="••••••••"
+              />
+              {errPassword && <p className="text-red-500 text-sm">{errPassword}</p>}
+            </div>
+            <button
+              type="submit"
+              onClick={handleSignIn}
+              className="w-full py-2 bg-black text-white rounded hover:bg-gray-900"
+            >
+              Sign In
+            </button>
+
+            {/* Google Login Button */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full py-2 bg-white border rounded flex items-center justify-center space-x-2 hover:bg-gray-100"
+            >
+              <FcGoogle className="text-xl" />
+              <span className="text-black">Sign in with Google</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleForgot}
+              className="w-full text-sm text-black hover:underline"
+            >
+              Forgot Password?
+            </button>
+            <p className="text-sm text-center">
+              Don’t have an account?{" "}
+              <Link to="/signup" className="text-black hover:underline">
+                Sign Up
+              </Link>
+            </p>
           </form>
         )}
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="absolute bg-white p-6 rounded shadow-lg w-80 z-20 space-y-4">
+          {!showResetPassword ? (
+            <>
+              <h2 className="text-xl font-bold text-black">Forgot Password</h2>
+              <input
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="Your email"
+                className="w-full p-2 border rounded"
+              />
+              {otpSent && (
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter OTP"
+                  className="w-full p-2 border rounded"
+                />
+              )}
+              <div className="flex space-x-2">
+                {!otpSent ? (
+                  <button onClick={handleVerifyEmail} className="flex-1 bg-black text-white py-2 rounded hover:bg-gray-900">
+                    Send OTP
+                  </button>
+                ) : (
+                  <button onClick={handleVerifyOtp} className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                    Verify OTP
+                  </button>
+                )}
+                <button onClick={handleCancel} className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400">
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-bold text-black">Reset Password</h2>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New password"
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                className="w-full p-2 border rounded"
+              />
+              <div className="flex space-x-2">
+                <button onClick={handleResetPassword} className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                  Reset
+                </button>
+                <button onClick={handleCancel} className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400">
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Custom CSS Animations */}
+      <style>{`
+        .hanger {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          animation: drop 0.6s ease forwards, swing 2s ease-in-out infinite alternate;
+          transform: translateY(-150px) rotate(0deg);
+        }
+        .hanger .rope {
+          width: 2px;
+          height: 50px;
+          background: white;
+        }
+        .hanger .letter {
+          font-size: 40px;
+          font-weight: bold;
+          color: white;
+        }
+        @keyframes drop {
+          to { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes swing {
+          from { transform: translateY(0) rotate(-10deg); }
+          to { transform: translateY(0) rotate(10deg); }
+        }
+        .delay-0 { animation-delay: 0s; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+      `}</style>
     </div>
   );
 };

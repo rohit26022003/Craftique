@@ -16,38 +16,42 @@ const SpecialOffers = () => {
         <Product
           _id="1101"
           img={spfOne}
-          productName="Cap for Boys"
+          productName="Wooden Craft"
           price="35.00"
-          color="Blank and White"
+          //color="Blank and White"
           badge={true}
-          des="Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic excepturi quibusdam odio deleniti reprehenderit facilis."
+          des="This handcrafted wooden craft showcases timeless beauty and skilled workmanship.  
+Made from quality wood, it adds a rustic and natural touch to your décor."
         />
         <Product
           _id="1102"
           img={spfTwo}
-          productName="Tea Table"
-          price="180.00"
-          color="Gray"
+          productName="Folk Doll"
+          price="30.00"
+          //color="Gray"
           badge={true}
-          des="Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic excepturi quibusdam odio deleniti reprehenderit facilis."
+          des="This handcrafted folk doll reflects rich cultural heritage and traditional artistry.  
+Carefully made with vibrant fabrics, it adds a colorful, ethnic charm to any space."
         />
         <Product
           _id="1103"
           img={spfThree}
-          productName="Headphones"
+          productName="Hat"
           price="25.00"
-          color="Mixed"
+          //color="Mixed"
           badge={true}
-          des="Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic excepturi quibusdam odio deleniti reprehenderit facilis."
+          des="This handcrafted hat blends style with tradition, offering a unique, artisanal touch.  
+Made with quality materials, it’s both fashionable and comfortable to wear."
         />
         <Product
           _id="1104"
           img={spfFour}
-          productName="Sun glasses"
+          productName="Coconut Shell Craft"
           price="220.00"
-          color="Black"
+          //color="Black"
           badge={true}
-          des="Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic excepturi quibusdam odio deleniti reprehenderit facilis."
+          des="This handcrafted coconut shell craft transforms natural materials into stunning art.  
+Eco-friendly and unique, it adds a tropical and earthy vibe to your décor."
         />
       </div>
     </div>
