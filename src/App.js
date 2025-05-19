@@ -10,7 +10,7 @@ import {
 
 // Import components/pages
 import Footer from "./components/home/Footer/Footer";
-import FooterBottom from "./components/home/Footer/FooterBottom";
+// import FooterBottom from "./components/home/Footer/FooterBottom";
 import Header from "./components/home/Header/Header";
 import HeaderBottom from "./components/home/Header/HeaderBottom";
 import SpecialCase from "./components/SpecialCase/SpecialCase";
@@ -65,7 +65,7 @@ const Layout = () => {
       <ScrollRestoration />
       <Outlet />
       <Footer />
-      <FooterBottom />
+      {/* <FooterBottom /> */}
     </div>
   );
 };

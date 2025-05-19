@@ -8,86 +8,82 @@ import { paginationItems } from "../../../constants";
 
 const HeaderBottom = () => {
   const products = useSelector((state) => state.orebiReducer.products);
-  const [show, setShow] = useState(false);
   const [showUser, setShowUser] = useState(false);
-  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [showResults, setShowResults] = useState(false);
   const ref = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
-        setShow(false);
         setShowUser(false);
+        setShowResults(false);
       }
     };
-    document.body.addEventListener("click", handleClickOutside);
-    return () => document.body.removeEventListener("click", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]);
-
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim()) {
+      const filtered = paginationItems.filter((item) =>
+        item.productName.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+      setShowResults(true);
+    } else {
+      setShowResults(false);
+    }
   };
 
-  useEffect(() => {
-    const filtered = paginationItems.filter((item) =>
-      item.productName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [searchQuery]);
+  const handleResultClick = (item) => {
+    navigate(`/product/${item.productName.toLowerCase().replace(/\s+/g, "")}`, {
+      state: { item: item },
+    });
+    setSearchQuery("");
+    setShowResults(false);
+  };
 
   return (
-    <div
-      className="w-full bg-[#dcdcdc] text-[#333] shadow-md relative"
-      ref={ref}
-    >
+    <div className="w-full bg-[#dcdcdc] text-[#333] shadow-md relative" ref={ref}>
       <div className="max-w-container mx-auto">
         <Flex className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full px-4 pb-4 lg:pb-0 h-full lg:h-24">
-
           {/* Search Bar */}
           <div className="relative w-full lg:w-[600px] h-[50px] text-base text-black bg-white flex items-center gap-2 justify-between px-6 rounded-xl">
             <input
               className="flex-1 h-full outline-none placeholder:text-[#aaa] placeholder:text-[14px]"
               type="text"
-              onChange={handleSearch}
+              onChange={handleSearchChange}
               value={searchQuery}
               placeholder="Search your products here"
+              onFocus={() => searchQuery && setShowResults(true)}
             />
             <FaSearch className="w-5 h-5 text-gray-600" />
-            {searchQuery && (
-              <div className="w-full mx-auto h-96 bg-white top-16 absolute left-0 z-50 overflow-y-scroll shadow-2xl scrollbar-hide cursor-pointer">
-                {filteredProducts.map((item) => (
-                  <div
-                    onClick={() => {
-                      navigate(
-                        `/product/${item.productName
-                          .toLowerCase()
-                          .split(" ")
-                          .join("")}`,
-                        { state: { item: item } }
-                      );
-                      setSearchQuery("");
-                    }}
-                    key={item._id}
-                    className="max-w-[600px] h-28 bg-gray-100 mb-3 flex items-center gap-3"
-                  >
-                    <img className="w-24" src={item.img} alt="productImg" />
-                    <div className="flex flex-col gap-1">
-                      <p className="font-semibold text-lg">
-                        {item.productName}
-                      </p>
-                      <p className="text-xs">{item.des}</p>
-                      <p className="text-sm">
-                        Price:{" "}
-                        <span className="text-primeColor font-semibold">
-                          ${item.price}
-                        </span>
-                      </p>
+
+            {showResults && (
+              <div className="absolute top-[60px] left-0 w-full bg-white max-h-[400px] overflow-y-auto z-50 shadow-2xl rounded-md border border-gray-200">
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((item) => (
+                    <div
+                      key={item._id}
+                      onClick={() => handleResultClick(item)}
+                      className="flex gap-3 items-center px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <img src={item.img} alt={item.productName} className="w-16 h-16 object-cover" />
+                      <div>
+                        <p className="font-medium text-sm">{item.productName}</p>
+                        <p className="text-xs text-gray-600">{item.des}</p>
+                        <p className="text-sm text-primeColor font-semibold">₹{item.price}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-gray-500">No products found.</div>
+                )}
               </div>
             )}
           </div>
@@ -107,24 +103,16 @@ const HeaderBottom = () => {
                 className="absolute top-6 left-0 z-50 bg-white text-black w-44 h-auto p-4 pb-6 shadow-lg"
               >
                 <Link to="/signin" onClick={() => setShowUser(false)}>
-                  <li className="text-gray-700 px-4 py-1 border-b border-b-gray-300 hover:border-b-black hover:text-black duration-300 cursor-pointer">
-                    Login
-                  </li>
+                  <li className="text-gray-700 px-4 py-1 border-b hover:text-black cursor-pointer">Login</li>
                 </Link>
                 <Link to="/signup" onClick={() => setShowUser(false)}>
-                  <li className="text-gray-700 px-4 py-1 border-b border-b-gray-300 hover:border-b-black hover:text-black duration-300 cursor-pointer">
-                    Sign Up
-                  </li>
+                  <li className="text-gray-700 px-4 py-1 border-b hover:text-black cursor-pointer">Sign Up</li>
                 </Link>
                 <Link to="/orders" onClick={() => setShowUser(false)}>
-                  <li className="text-gray-700 px-4 py-1 border-b border-b-gray-300 hover:border-b-black hover:text-black duration-300 cursor-pointer">
-                    Orders
-                  </li>
+                  <li className="text-gray-700 px-4 py-1 border-b hover:text-black cursor-pointer">Orders</li>
                 </Link>
                 <Link to="/profile" onClick={() => setShowUser(false)}>
-                  <li className="text-gray-700 px-4 py-1 border-b border-b-gray-300 hover:border-b-black hover:text-black duration-300 cursor-pointer">
-                    Profile
-                  </li>
+                  <li className="text-gray-700 px-4 py-1 hover:text-black cursor-pointer">Profile</li>
                 </Link>
               </motion.ul>
             )}
@@ -138,7 +126,6 @@ const HeaderBottom = () => {
               </div>
             </Link>
           </div>
-
         </Flex>
       </div>
     </div>

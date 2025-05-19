@@ -230,7 +230,7 @@ Connect with us on social media:
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col border border-gray-200"
+            className="bg-white rounded-lg shadow-xl w-full max-w-md sm:w-96 h-[500px] flex flex-col border border-gray-200"
           >
             {/* Header */}
             <div className="bg-black text-white p-4 rounded-t-lg flex justify-between items-center">
@@ -266,7 +266,7 @@ Connect with us on social media:
                   className={`mb-4 ${msg.type === 'user' ? 'text-right' : ''}`}
                 >
                   <div
-                    className={`inline-block p-3 rounded-lg ${
+                    className={`inline-block p-3 rounded-lg max-w-[85%] ${
                       msg.type === 'user'
                         ? 'bg-black text-white'
                         : 'bg-gray-100 text-gray-800'
@@ -295,24 +295,15 @@ Connect with us on social media:
               ))}
               {isTyping && (
                 <div className="flex items-center gap-1 p-2">
-                  <motion.span
-                    variants={dotVariants}
-                    initial="initial"
-                    animate="animate"
-                    className="w-2 h-2 bg-black rounded-full"
-                  />
-                  <motion.span
-                    variants={dotVariants}
-                    initial="initial"
-                    animate="animate"
-                    className="w-2 h-2 bg-black rounded-full"
-                  />
-                  <motion.span
-                    variants={dotVariants}
-                    initial="initial"
-                    animate="animate"
-                    className="w-2 h-2 bg-black rounded-full"
-                  />
+                  {[...Array(3)].map((_, i) => (
+                    <motion.span
+                      key={i}
+                      variants={dotVariants}
+                      initial="initial"
+                      animate="animate"
+                      className="w-2 h-2 bg-black rounded-full"
+                    />
+                  ))}
                 </div>
               )}
               <div ref={messagesEndRef} />

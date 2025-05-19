@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MDBContainer, MDBCardImage } from 'mdb-react-ui-kit';
-import { FaCheckCircle, FaRegCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaRegCircle, FaStar } from 'react-icons/fa';
 
 const products = [
   {
@@ -22,16 +22,28 @@ export default function OrderProductDetails() {
 
   const stages = ['Order Placed', 'Processing', 'Shipping', 'Delivered'];
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [review, setReview] = useState('');
 
   useEffect(() => {
     const fetchOrderStatus = () => {
-      const mockStatus = 'Shipping'; // Simulating an API response
+      const mockStatus = 'Shipping'; // Simulated API response
       const stageIndex = stages.findIndex(stage => stage === mockStatus);
       setCurrentStageIndex(stageIndex !== -1 ? stageIndex : 0);
     };
     const timer = setTimeout(fetchOrderStatus, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleRatingClick = (index) => setRating(index);
+  const handleReviewSubmit = () => {
+    console.log('Rating:', rating);
+    console.log('Review:', review);
+    alert('Thank you for your review!');
+    setRating(0);
+    setReview('');
+  };
 
   if (!product) {
     return (
@@ -51,13 +63,12 @@ export default function OrderProductDetails() {
           style={{
             textDecoration: 'none',
             background: 'none',
-            color: '#000000',  // Set arrow color to black
+            color: '#000000',
             fontSize: '32px',
             fontWeight: 'bold',
             cursor: 'pointer',
             transition: 'transform 0.3s ease, color 0.3s ease',
           }}
-          className="back-arrow"
         >
           ←
         </Link>
@@ -91,9 +102,7 @@ export default function OrderProductDetails() {
                 borderRadius: '10px',
                 border: '2px solid #444',
                 boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-                transition: 'transform 0.3s ease',
               }}
-              className="product-image"
             />
             <div>
               <h4 style={{ marginBottom: '8px', fontSize: '20px' }}>{product.name}</h4>
@@ -101,6 +110,54 @@ export default function OrderProductDetails() {
               <p style={{ margin: '5px 0' }}><strong>Seller:</strong> Flipkart Retail</p>
               <p style={{ fontWeight: 'bold', fontSize: '22px' }}>{product.price}</p>
             </div>
+          </div>
+
+          {/* Review and Rating Section */}
+          <div style={{ marginTop: '30px' }}>
+            <h5 className="mb-3">Rate & Review</h5>
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FaStar
+                  key={star}
+                  size={24}
+                  color={(hoverRating || rating) >= star ? '#ffc107' : '#ccc'}
+                  onClick={() => handleRatingClick(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  style={{ cursor: 'pointer' }}
+                />
+              ))}
+            </div>
+            <textarea
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              placeholder="Write your review..."
+              rows="3"
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '6px',
+                border: '1px solid #ccc',
+                backgroundColor: '#fff',
+                color: '#000',
+                resize: 'none',
+                marginBottom: '10px',
+              }}
+            />
+            <button
+              onClick={handleReviewSubmit}
+              style={{
+                backgroundColor: '#ffc107',
+                color: '#000',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              Submit Review
+            </button>
           </div>
 
           {/* Tracking Section */}
@@ -127,7 +184,6 @@ export default function OrderProductDetails() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        position: 'relative',
                       }}
                     >
                       {index <= currentStageIndex ? (
@@ -140,16 +196,14 @@ export default function OrderProductDetails() {
                   </div>
                 ))}
               </div>
-
-              {/* Track Line between the circles (Positioned below the circles) */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '58px', // Move the line 2px further down
+                  top: '58px',
                   left: '0',
                   right: '0',
                   height: '4px',
-                  backgroundColor: '#28a745', // Green color for the line
+                  backgroundColor: '#28a745',
                   zIndex: 0,
                 }}
               />

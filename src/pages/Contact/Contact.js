@@ -72,22 +72,21 @@ const Contact = () => {
     <div className="max-w-container mx-auto px-4 py-10">
       <Breadcrumbs title="Contact Us" prevLocation={prevLocation} />
 
-      <div className="flex flex-col lg:flex-row gap-10 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-8">
         {/* Contact Form */}
-        <div className="flex-1 bg-white p-8 rounded-2xl shadow-lg">
+        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg h-[400px] overflow-y-auto max-w-full">
           {successMsg ? (
             <p className="font-medium text-gray-700 text-xl">{successMsg}</p>
           ) : (
-            <form onSubmit={handlePost} className="space-y-8">
+            <form onSubmit={handlePost} className="space-y-6 sm:space-y-8">
               <div>
-                {/* Name */}
-                <label className="block text-xl font-semibold text-gray-700">
+                <label className="block text-lg sm:text-xl font-semibold text-gray-700">
                   Name
                 </label>
                 <input
                   onChange={handleName}
                   value={clientName}
-                  className="w-full p-4 mt-3 rounded-md shadow-sm border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full p-3 sm:p-4 mt-2 rounded-md shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   type="text"
                   placeholder="Enter your name"
                 />
@@ -97,14 +96,13 @@ const Contact = () => {
               </div>
 
               <div>
-                {/* Email */}
-                <label className="block text-xl font-semibold text-gray-700">
+                <label className="block text-lg sm:text-xl font-semibold text-gray-700">
                   Email
                 </label>
                 <input
                   onChange={handleEmail}
                   value={email}
-                  className="w-full p-4 mt-3 rounded-md shadow-sm border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full p-3 sm:p-4 mt-2 rounded-md shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   type="email"
                   placeholder="Enter your email"
                 />
@@ -114,15 +112,14 @@ const Contact = () => {
               </div>
 
               <div>
-                {/* Message */}
-                <label className="block text-xl font-semibold text-gray-700">
+                <label className="block text-lg sm:text-xl font-semibold text-gray-700">
                   Message
                 </label>
                 <textarea
                   onChange={handleMessages}
                   value={messages}
                   rows="5"
-                  className="w-full p-4 mt-3 rounded-md shadow-sm border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+                  className="w-full p-3 sm:p-4 mt-2 rounded-md shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
                   placeholder="Enter your message"
                 ></textarea>
                 {errMessages && (
@@ -132,7 +129,7 @@ const Contact = () => {
 
               <button
                 type="submit"
-                className="w-full py-4 mt-6 bg-gray-800 text-white font-bold text-lg rounded-full hover:bg-gray-600 transition-all duration-300"
+                className="w-full py-3 sm:py-4 mt-4 bg-gray-800 text-white font-bold text-base sm:text-lg rounded-full hover:bg-gray-600 transition-all duration-300"
               >
                 Submit
               </button>
@@ -141,20 +138,18 @@ const Contact = () => {
         </div>
 
         {/* Map Section */}
-        <div className="flex-1 mt-10 lg:mt-0">
-          <div className="w-full h-[400px] rounded-xl overflow-hidden shadow-md">
-            <iframe
-              title="Company Location"
-              aria-label="Google Map showing company location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d483.4955191827785!2d88.43544160886479!3d22.57125652741123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a027531e81e2cf7%3A0x70b7429ad4b0a8ba!2sTechno%20India%20Group(TiiT%26SMIT)!5e0!3m2!1sen!2sin!4v1746903832818!5m2!1sen!2sin"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
+        <div className="w-full h-[400px] rounded-xl overflow-hidden shadow-md">
+          <iframe
+            title="Company Location"
+            aria-label="Google Map showing company location"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d483.4955191827785!2d88.43544160886479!3d22.57125652741123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a027531e81e2cf7%3A0x70b7429ad4b0a8ba!2sTechno%20India%20Group(TiiT%26SMIT)!5e0!3m2!1sen!2sin!4v1746903832818!5m2!1sen!2sin"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen=""
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
         </div>
       </div>
     </div>
