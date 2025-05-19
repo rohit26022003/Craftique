@@ -1,3 +1,4 @@
+// src/components/ChatBot.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { FaRobot, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,38 +10,37 @@ const ChatBot = () => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Initial greeting when chat opens
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const initialMessages = [
+      setMessages([
         {
           type: 'bot',
-          content: 'Hello! 👋 I am CRAFTI-ROBO, your friendly craft assistant! How may I help you today?',
+          content:
+            'Hello! 👋 I am CRAFTI-ROBO, your friendly craft assistant! How may I help you today?',
           options: [
             'Product Categories',
             'Shipping Information',
             'Return Policy',
             'Payment Methods',
             'How to Order',
-            'Contact Support'
-          ]
-        }
-      ];
-      setMessages(initialMessages);
+            'Contact Support',
+          ],
+        },
+      ]);
     }
   }, [isOpen]);
 
   const handleOptionClick = (option) => {
     setMessages([...messages, { type: 'user', content: option }]);
     setIsTyping(true);
-    
+
     let response = '';
     switch (option) {
       case 'Product Categories':
@@ -86,16 +86,13 @@ Note: Delivery times may vary for custom orders.`;
 • Free returns for damaged items
 • Replacement or refund available
 • Custom orders are non-returnable
-• Contact us before initiating a return
-
-We want you to be completely satisfied with your handcrafted treasures!`;
+• Contact us before initiating a return`;
         break;
       case 'Payment Methods':
         response = `We offer convenient payment options:
 💳 Digital Payments
 • UPI (All apps supported)
 • Credit/Debit Cards
-
 
 💵 Traditional Methods
 • Cash on Delivery (COD)
@@ -134,25 +131,33 @@ India
 
 🕒 Business Hours:
 Monday to Friday: 11:30 AM - 5 PM IST
-Saturday & Sunday Close!!
+Saturday & Sunday Closed!!
 
 Connect with us on social media:
 • Instagram: @handcraftstore
-• Facebook: /handcraftstore
-
-We typically respond within 2 hours during business hours!`;
+• Facebook: /handcraftstore`;
         break;
       default:
-        response = "I'm not quite sure about that. Would you like to know about our product categories or something else? Feel free to ask!";
+        response = `I'm not quite sure about that. Would you like to know about our product categories or something else? Feel free to ask!`;
     }
-    
+
     setTimeout(() => {
       setIsTyping(false);
-      setMessages(prev => [...prev, { 
-        type: 'bot', 
-        content: response,
-        options: ['Product Categories', 'Shipping Information', 'Return Policy', 'Payment Methods', 'How to Order', 'Contact Support']
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: 'bot',
+          content: response,
+          options: [
+            'Product Categories',
+            'Shipping Information',
+            'Return Policy',
+            'Payment Methods',
+            'How to Order',
+            'Contact Support',
+          ],
+        },
+      ]);
     }, 1500);
   };
 
@@ -164,26 +169,16 @@ We typically respond within 2 hours during business hours!`;
       transition: {
         duration: 3,
         repeat: Infinity,
-        repeatType: "loop"
-      }
+        repeatType: 'loop',
+      },
     },
     hover: {
       scale: 1.2,
       rotate: [0, -15, 15, -15, 15, 0],
       transition: {
-        duration: 0.5
-      }
-    }
-  };
-
-  const typingIndicatorVariants = {
-    initial: { opacity: 0 },
-    animate: { 
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
+        duration: 0.5,
+      },
+    },
   };
 
   const dotVariants = {
@@ -193,9 +188,9 @@ We typically respond within 2 hours during business hours!`;
       transition: {
         duration: 0.8,
         repeat: Infinity,
-        repeatType: "reverse"
-      } 
-    }
+        repeatType: 'reverse',
+      },
+    },
   };
 
   return (
@@ -225,7 +220,7 @@ We typically respond within 2 hours during business hours!`;
               transition={{ delay: 0.2 }}
               className="text-sm font-medium"
             >
-              CRAFTI-ROBO
+              CRAFTBOT
             </motion.span>
           </motion.button>
         )}
@@ -237,7 +232,7 @@ We typically respond within 2 hours during business hours!`;
             exit={{ scale: 0.8, opacity: 0 }}
             className="bg-white rounded-lg shadow-xl w-96 h-[500px] flex flex-col border border-gray-200"
           >
-            {/* Chat Header */}
+            {/* Header */}
             <div className="bg-black text-white p-4 rounded-t-lg flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <motion.div
@@ -248,18 +243,11 @@ We typically respond within 2 hours during business hours!`;
                 >
                   <FaRobot size={24} />
                 </motion.div>
-                <motion.h3
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="font-semibold"
-                >
-                  CRAFTI-ROBO
-                </motion.h3>
+                <h3 className="font-semibold">CRAFTBOT</h3>
               </div>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                transition={{ duration: 0.2 }}
                 onClick={() => setIsOpen(false)}
                 className="hover:bg-white/20 rounded-full p-1"
               >
@@ -267,76 +255,65 @@ We typically respond within 2 hours during business hours!`;
               </motion.button>
             </div>
 
-            {/* Chat Messages */}
+            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              {messages.map((message, index) => (
+              {messages.map((msg, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
-                  className={`mb-4 ${message.type === 'user' ? 'text-right' : ''}`}
+                  className={`mb-4 ${msg.type === 'user' ? 'text-right' : ''}`}
                 >
-                  <div>
-                    <motion.div
-                      initial={{ scale: 0.9 }}
-                      animate={{ scale: 1 }}
-                      whileHover={{ scale: 1.02 }}
-                      className={`inline-block p-3 rounded-lg ${
-                        message.type === 'user'
-                          ? 'bg-black text-white'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {message.content}
-                    </motion.div>
-                    {message.type === 'bot' && message.options && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="mt-2"
-                      >
-                        <div className="mt-2 space-y-2">
-                          {message.options.map((option, idx) => (
-                            <motion.button
-                              key={idx}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.1 * idx }}
-                              whileHover={{ scale: 1.02, x: 5 }}
-                              onClick={() => handleOptionClick(option)}
-                              className="block w-full text-left p-2 text-sm text-gray-800 hover:bg-gray-100 rounded transition-colors duration-200 border border-gray-200 hover:border-black"
-                            >
-                              {option}
-                            </motion.button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
+                  <div
+                    className={`inline-block p-3 rounded-lg ${
+                      msg.type === 'user'
+                        ? 'bg-black text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {msg.content}
                   </div>
+                  {msg.type === 'bot' && msg.options && (
+                    <div className="mt-2 space-y-2">
+                      {msg.options.map((option, idx) => (
+                        <motion.button
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 * idx }}
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          onClick={() => handleOptionClick(option)}
+                          className="block w-full text-left p-2 text-sm text-gray-800 hover:bg-gray-100 rounded border border-gray-200 hover:border-black transition-colors"
+                        >
+                          {option}
+                        </motion.button>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               ))}
               {isTyping && (
-                <motion.div
-                  variants={typingIndicatorVariants}
-                  initial="initial"
-                  animate="animate"
-                  className="flex items-center gap-1 p-2"
-                >
+                <div className="flex items-center gap-1 p-2">
                   <motion.span
                     variants={dotVariants}
+                    initial="initial"
+                    animate="animate"
                     className="w-2 h-2 bg-black rounded-full"
                   />
                   <motion.span
                     variants={dotVariants}
+                    initial="initial"
+                    animate="animate"
                     className="w-2 h-2 bg-black rounded-full"
                   />
                   <motion.span
                     variants={dotVariants}
+                    initial="initial"
+                    animate="animate"
                     className="w-2 h-2 bg-black rounded-full"
                   />
-                </motion.div>
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>

@@ -52,7 +52,6 @@ const SimpleLayout = () => {
       <ScrollRestoration />
       <Outlet />
       <Footer />
-      <ChatBot />
     </div>
   );
 };
@@ -102,8 +101,9 @@ const router = createBrowserRouter(
 
 function App() {
   return (
-    <div className="font-bodyFont">
+    <div className="font-bodyFont relative">
       <RouterProvider router={router} />
+      <ChatBot />
     </div>
   );
 }
