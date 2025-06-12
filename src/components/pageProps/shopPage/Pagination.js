@@ -1,78 +1,105 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactPaginate from "react-paginate";
-import Product from "../../home/Products/Product";
-import { paginationItems } from "../../../constants";
 
-const items = paginationItems;
-function Items({ currentItems }) {
-  return (
-    <>
-      {currentItems &&
-        currentItems.map((item) => (
-          <div key={item._id} className="w-full">
-            <Product
-              _id={item._id}
-              img={item.img}
-              productName={item.productName}
-              price={item.price}
-              color={item.color}
-              badge={item.badge}
-              des={item.des}
-            />
-          </div>
-        ))}
-    </>
-  );
-}
-
-const Pagination = ({ itemsPerPage }) => {
-  // Here we use item offsets; we could also use page offsets
-  // following the API or data you're working with.
+const Pagination = ({ itemsPerPage, selectedCategory, selectedPriceRange, products }) => {
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [itemOffset, setItemOffset] = useState(0);
-  const [itemStart, setItemStart] = useState(1);
 
-  // Simulate fetching items from another resources.
-  // (This could be items from props; or items loaded in a local state
-  // from an API endpoint with useEffect and useState)
+  useEffect(() => {
+    setFilteredProducts(
+      products.filter((item) =>
+        (!selectedCategory || item.category === selectedCategory) &&
+        item.price >= selectedPriceRange.min &&
+        item.price <= selectedPriceRange.max
+      )
+    );
+  }, [selectedCategory, selectedPriceRange, products]);
+
   const endOffset = itemOffset + itemsPerPage;
-  //   console.log(`Loading items from ${itemOffset} to ${endOffset}`);
-  const currentItems = items.slice(itemOffset, endOffset);
-  const pageCount = Math.ceil(items.length / itemsPerPage);
+  const currentItems = filteredProducts.slice(itemOffset, endOffset);
+  const pageCount = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  // Invoke when user click to request another page.
   const handlePageClick = (event) => {
-    const newOffset = (event.selected * itemsPerPage) % items.length;
-    setItemOffset(newOffset);
-    // console.log(
-    //   `User requested page number ${event.selected}, which is offset ${newOffset},`
-    // );
-    setItemStart(newOffset);
+    setItemOffset(event.selected * itemsPerPage);
+  };
+
+  // Add product to cart (Store in Database)
+  const addToCart = async (item) => {
+    try {
+      const response = await fetch("http://localhost:8080/api/cart/additem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+         productId: item.id,
+          userId: 1,
+          name: item.name,
+          price: item.price,
+          quantity: 1,
+          imagePath: item.imagePath
+        }),
+      });
+
+      if (response.ok) {
+        alert(`${item.name} added to cart!`);
+      } else {
+        alert("Failed to add product to cart.");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 mdl:gap-4 lg:gap-10">
-        <Items currentItems={currentItems} />
-      </div>
-      <div className="flex flex-col mdl:flex-row justify-center mdl:justify-between items-center">
-        <ReactPaginate
-          nextLabel=""
-          onPageChange={handlePageClick}
-          pageRangeDisplayed={3}
-          marginPagesDisplayed={2}
-          pageCount={pageCount}
-          previousLabel=""
-          pageLinkClassName="w-9 h-9 border-[1px] border-lightColor hover:border-gray-500 duration-300 flex justify-center items-center"
-          pageClassName="mr-6"
-          containerClassName="flex text-base font-semibold font-titleFont py-10"
-          activeClassName="bg-black text-white"
-        />
+      {currentItems.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+          {currentItems.map((item) => (
+            <div key={item.id} className="w-[300px] h-[450px] flex flex-col justify-between border p-4 bg-gradient-to-b from-pink-200 to-white rounded-lg shadow-md">
+              <img
+                src={item.imagePath}
+                alt={item.name}
+                className="w-full h-[250px] object-cover rounded"
+              />
+              <div className="flex flex-col justify-between h-[120px] overflow-hidden text-center">
+                <h2 className="text-lg font-semibold">{item.name}</h2>
+                <p className="text-sm text-gray-500">{item.description}</p>
+                <span className="text-md font-bold">₹{item.price}</span>
+              </div>
+              {/* Action Buttons */}
+              <div className="flex gap-4 mt-4 justify-center">
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                  onClick={() => addToCart(item)}
+                >
+                  Add to Cart 🛒
+                </button>
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                  onClick={() => window.location.href = `/product/${item.id}`}
+                >
+                  View Details 🔎
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p>No products found within the selected category and price range.</p>
+      )}
 
-        <p className="text-base font-normal text-lightText">
-          Products from {itemStart === 0 ? 1 : itemStart} to {endOffset} of{" "}
-          {items.length}
-        </p>
-      </div>
+      <ReactPaginate
+        nextLabel="Next"
+        onPageChange={handlePageClick}
+        pageCount={pageCount}
+        previousLabel="Previous"
+        pageLinkClassName="w-9 h-9 border-[1px] border-lightColor hover:border-gray-500 duration-300 flex justify-center items-center"
+        pageClassName="mr-6"
+        containerClassName="flex text-base font-semibold font-titleFont py-10"
+        activeClassName="bg-black text-white"
+      />
     </div>
   );
 };

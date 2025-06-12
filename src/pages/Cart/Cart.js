@@ -1,17 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Breadcrumbs from "../../components/pageProps/Breadcrumbs";
-import { resetCart } from "../../redux/orebiSlice";
 import { emptyCart } from "../../assets/images/index";
 import ItemCard from "./ItemCard";
 
-const Cart = () => {
-  const dispatch = useDispatch();
-  const products = useSelector((state) => state.orebiReducer.products);
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Cart component that displays and manages the user's shopping cart.
+ *
+ * @param {Object} props - The component props.
+ * @param {number} props.userId - The ID of the user whose cart is to be displayed.
+ *
+ * The component fetches cart items from the backend using the provided `userId`.
+ * It calculates the total amount and shipping charges based on the cart items.
+ * The user can update their delivery information, which is validated before saving.
+ * Displays loading state while fetching cart data and handles empty cart scenarios.
+ */
+
+/*******  90ae50cb-d9bd-4e32-8865-06ef0550b0b8  *******/const Cart = ({ userId }) => {
+ 
   const [totalAmt, setTotalAmt] = useState(0);
   const [shippingCharge, setShippingCharge] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -22,40 +35,102 @@ const Cart = () => {
   const [pinCode, setPinCode] = useState("");
   const [country, setCountry] = useState("");
 
-  useEffect(() => {
-    let price = 0;
-    products.forEach((item) => {
-      price += item.price * item.quantity;
-    });
-    setTotalAmt(price);
-  }, [products]);
-
-  useEffect(() => {
-    if (totalAmt <= 200) {
-      setShippingCharge(30);
-    } else if (totalAmt <= 400) {
-      setShippingCharge(25);
-    } else if (totalAmt > 401) {
-      setShippingCharge(20);
+  // Fetch cart items dynamically from backend
+  const fetchCartItems = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8080/api/cart/${userId}`);
+      const data = await response.json();
+      setCartItems(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [totalAmt]);
-
-  const handleSaveInfo = () => {
-    if (!name || !phone || !email || !stateName || !city || !streetAddress || !pinCode || !country) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    alert(
-      "Information saved!\n" +
-      `Name: ${name}\nPhone: ${phone}\nEmail: ${email}\nState: ${stateName}\nCity: ${city}\nStreet: ${streetAddress}\nPin: ${pinCode}\nCountry: ${country}`
-    );
   };
+
+  useEffect(() => {
+    fetchCartItems();
+  }, [userId]);
+
+  useEffect(() => {
+    setTotalAmt(cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0));
+  }, [cartItems]);
+
+  useEffect(() => {
+    setShippingCharge(totalAmt <= 200 ? 30 : totalAmt <= 400 ? 25 : 20);
+  }, [totalAmt]);
+const increaseQuantity = async (userId, productId, increase) => {
+    try {
+        const response = await axios.put(
+            `http://localhost:8080/api/cart/update/${userId}/${productId}?increase=${increase}`
+        );
+        const updatedItem = response.data;
+
+        // ✅ Update the local state by replacing the old item
+        setCartItems(prevItems =>
+            prevItems.map(item =>
+                item.productId === updatedItem.productId ? updatedItem : item
+            )
+        );
+    } catch (error) {
+        console.error("Error updating cart:", error);
+    }
+};
+
+  
+  const removeItem = async (itemId) => {
+    try {
+        await axios.delete(`http://localhost:8080/api/cart/delete/item/${itemId}`);
+        
+        // ✅ Re-fetch the latest cart from backend
+        fetchCartItems(); 
+    } catch (error) {
+        console.error("Error deleting item:", error);
+    }
+};
+
+
+
+const handleSaveInfo = async (item) => {
+  if (!name || !phone || !email || !stateName || !city || !streetAddress || !pinCode || !country) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
+  const orderData = {
+    userId,
+    productId: cartItems.map(item => item.productId),
+    quantity: cartItems.map(item => item.quantity),
+    totalAmount: totalAmt,
+    orderStatus: "Processing",
+    paymentMethod: "", // Can be dynamic
+    transactionId: "", // Generate or receive dynamically
+    shippingAddress: `${streetAddress}, ${city}, ${stateName}, ${pinCode}, ${country}`,
+    orderDate: new Date().toISOString().split("T")[0], // Current date
+    shippingDate: "", // Can be set based on processing rules
+    deliveryDate: "" // To be updated when shipped
+  };
+  console.log(orderData);
+  
+  try {
+    const response = await axios.post("http://localhost:8080/api/order/placeorder", orderData);
+    alert("Order information saved successfully!");
+    console.log("Saved Order:", response.data);
+  } catch (error) {
+    console.error("Error saving order:", error);
+    alert("Failed to save order. Try again!");
+  }
+};
 
   return (
     <div className="max-w-container mx-auto px-4">
       <Breadcrumbs title="Cart" />
-      {products.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center min-h-[300px]">
+          <p className="text-lg font-semibold">Loading cart...</p>
+        </div>
+      ) : cartItems.length > 0 ? (
         <div className="pb-20">
           <div className="w-full h-20 bg-[#F5F7F7] text-primeColor hidden lgl:grid grid-cols-5 place-content-center px-6 text-lg font-titleFont font-semibold">
             <h2 className="col-span-2">Product</h2>
@@ -64,93 +139,26 @@ const Cart = () => {
             <h2>Sub Total</h2>
           </div>
           <div className="mt-5">
-            {products.map((item) => (
-              <div key={item._id}>
-                <ItemCard item={item} />
-              </div>
+            {cartItems.map((item) => (
+              <ItemCard key={item.id} item={item} increaseQuantity={increaseQuantity}  removeItem={removeItem} />
             ))}
           </div>
-
-          <button
-            onClick={() => dispatch(resetCart())}
-            className="py-2 px-10 bg-red-500 text-white font-semibold uppercase mb-4 hover:bg-red-700 duration-300"
-          >
-            Clear Cart
-          </button>
 
           <div className="flex flex-col lg:flex-row gap-8 mt-6">
             {/* Left side: Form */}
             <div className="w-full lg:w-1/2 flex flex-col gap-4 border border-gray-300 rounded-md p-4 shadow-sm">
               <h2 className="text-xl font-semibold">Delivery Information</h2>
 
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
+              <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="text" placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="text" placeholder="State" value={stateName} onChange={(e) => setStateName(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="text" placeholder="Street Address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="text" placeholder="Pin Code" value={pinCode} onChange={(e) => setPinCode(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
+              <input type="text" placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} className="w-full h-10 px-3 border rounded-md outline-none" />
 
-              <input
-                type="text"
-                placeholder="Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <input
-                type="text"
-                placeholder="State"
-                value={stateName}
-                onChange={(e) => setStateName(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <input
-                type="text"
-                placeholder="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <input
-                type="text"
-                placeholder="Street Address (with building/house no.)"
-                value={streetAddress}
-                onChange={(e) => setStreetAddress(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <input
-                type="text"
-                placeholder="Pin Code"
-                value={pinCode}
-                onChange={(e) => setPinCode(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <input
-                type="text"
-                placeholder="Country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full h-10 px-3 border rounded-md outline-none"
-              />
-
-              <button
-                onClick={handleSaveInfo}
-                className="w-full h-10 bg-primeColor text-white hover:bg-black duration-300 mt-2 rounded-md"
-              >
+              <button onClick={handleSaveInfo} className="w-full h-10 bg-primeColor text-white hover:bg-black duration-300 mt-2 rounded-md">
                 Save Info
               </button>
             </div>
@@ -160,22 +168,13 @@ const Cart = () => {
               <h1 className="text-2xl font-semibold text-right">Cart totals</h1>
               <div>
                 <p className="flex items-center justify-between border-[1px] border-gray-400 border-b-0 py-1.5 text-lg px-4 font-medium">
-                  Subtotal
-                  <span className="font-semibold tracking-wide font-titleFont">
-                    ₹{totalAmt}
-                  </span>
+                  Subtotal <span className="font-semibold tracking-wide font-titleFont">₹{totalAmt}</span>
                 </p>
                 <p className="flex items-center justify-between border-[1px] border-gray-400 border-b-0 py-1.5 text-lg px-4 font-medium">
-                  Shipping Charge
-                  <span className="font-semibold tracking-wide font-titleFont">
-                    ₹{shippingCharge}
-                  </span>
+                  Shipping Charge <span className="font-semibold tracking-wide font-titleFont">₹{shippingCharge}</span>
                 </p>
                 <p className="flex items-center justify-between border-[1px] border-gray-400 py-1.5 text-lg px-4 font-medium">
-                  Total
-                  <span className="font-bold tracking-wide text-lg font-titleFont">
-                    ₹{totalAmt + shippingCharge}
-                  </span>
+                  Total <span className="font-bold tracking-wide text-lg font-titleFont">₹{totalAmt + shippingCharge}</span>
                 </p>
               </div>
               <div className="flex justify-end">
@@ -189,29 +188,12 @@ const Cart = () => {
           </div>
         </div>
       ) : (
-        <motion.div
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="flex flex-col mdl:flex-row justify-center items-center gap-4 pb-20"
-        >
-          <div>
-            <img
-              className="w-80 rounded-lg p-4 mx-auto"
-              src={emptyCart}
-              alt="emptyCart"
-            />
-          </div>
+        <motion.div className="flex flex-col mdl:flex-row justify-center items-center gap-4 pb-20">
+          <img className="w-80 rounded-lg p-4 mx-auto" src={emptyCart} alt="emptyCart" />
           <div className="max-w-[500px] p-4 py-8 bg-white flex gap-4 flex-col items-center rounded-md shadow-lg">
-            <h1 className="font-titleFont text-xl font-bold uppercase">
-              Your Cart is Empty
-            </h1>
-            <p className="text-sm text-center px-10 -mt-2">
-              Your cart is waiting for unique handcrafted products. Add some and
-              make it special!
-            </p>
+            <h1 className="font-titleFont text-xl font-bold uppercase">Your Cart is Empty</h1>
             <Link to="/shop">
-              <button className="bg-primeColor rounded-md cursor-pointer hover:bg-black active:bg-gray-900 px-8 py-2 font-titleFont font-semibold text-lg text-gray-200 hover:text-white duration-300">
+              <button className="bg-primeColor rounded-md px-8 py-2 font-titleFont font-semibold text-lg text-gray-200 hover:text-white duration-300">
                 Continue Shopping
               </button>
             </Link>
