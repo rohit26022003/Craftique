@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 import Breadcrumbs from "../../components/pageProps/Breadcrumbs";
 
 const Contact = () => {
@@ -38,35 +39,65 @@ const Contact = () => {
     return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email);
   };
 
-  const handlePost = (e) => {
-    e.preventDefault();
-    let isValid = true;
+ const handlePost = async (e) => {
+  e.preventDefault();
+  let isValid = true;
 
-    if (!clientName) {
-      setErrClientName("Enter your Name");
-      isValid = false;
-    }
-    if (!email) {
-      setErrEmail("Enter your Email");
-      isValid = false;
-    } else if (!EmailValidation(email)) {
-      setErrEmail("Enter a Valid Email");
-      isValid = false;
-    }
-    if (!messages) {
-      setErrMessages("Enter your Message");
-      isValid = false;
-    }
+  // Reset previous errors
+  setErrClientName("");
+  setErrEmail("");
+  setErrMessages("");
+  setSuccessMsg("");
 
-    if (isValid) {
+  // Validation
+  if (!clientName) {
+    setErrClientName("Enter your Name");
+    isValid = false;
+  }
+  if (!email) {
+    setErrEmail("Enter your Email");
+    isValid = false;
+  } else if (!EmailValidation(email)) {
+    setErrEmail("Enter a Valid Email");
+    isValid = false;
+  }
+  if (!messages) {
+    setErrMessages("Enter your Message");
+    isValid = false;
+  }
+
+  if (isValid) {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "http://localhost:8080/api/contact/submit",
+        {
+          name: clientName,
+          email: email,
+          message: messages,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // Optional, but good to include
+          },
+        }
+      );
+
       setSuccessMsg(
         `Thank you, ${clientName}. Your message has been received successfully. We’ll respond to ${email} shortly.`
       );
       setClientName("");
       setEmail("");
       setMessages("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setSuccessMsg("Failed to send message. Please try again later.");
     }
-  };
+  }
+};
+
 
   return (
     <div className="max-w-container mx-auto px-4 py-10">

@@ -1,30 +1,65 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProfileView from "../../components/ProfileView";
 import ProfileForm from "../../components/ProfileForm";
+import axios from "axios";
 
 const ProfilePage = () => {
-  const navigate = useNavigate(); // Initialize navigate hook
+  const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState({
-    name: "Bill Smith",
-    email: "billsmith@example.com",
-    address: "123 Maple St, Springfield, IL",
-    phone: "(555) 123-4567",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
-  });
+  const navigate = useNavigate();
 
-  // The onCancel function to navigate to home tab
-  const handleCancel = () => {
-    navigate("/home"); // This will navigate to the home page
+  const userId = localStorage.getItem("userid");
+  const token = localStorage.getItem("token"); // assuming JWT token
+
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(`http://localhost:8080/api/auth/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(res.data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
   };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  const handleProfileUpdate = async (updatedUser) => {
+    try {
+      await axios.put(`http://localhost:8080/api/auth/edit/${userId}`, updatedUser, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(updatedUser);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Profile update failed:", error);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate("/");
+  };
+
+  if (!user) return <div>Loading...</div>;
 
   return (
     <div className="py-8">
       {!isEditing ? (
-        <ProfileView user={user} onEdit={() => setIsEditing(true)} onCancel={handleCancel} setUser={setUser} />
+        <ProfileView
+          user={user}
+          setUser={setUser}
+          onEdit={() => setIsEditing(true)}
+          onCancel={handleCancel}
+        />
       ) : (
-        <ProfileForm user={user} setUser={setUser} onCancel={() => setIsEditing(false)} />
+        <ProfileForm
+          user={user}
+          setUser={handleProfileUpdate}
+          onCancel={() => setIsEditing(false)}
+        />
       )}
     </div>
   );

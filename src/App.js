@@ -10,7 +10,6 @@ import {
 
 // Import components/pages
 import Footer from "./components/home/Footer/Footer";
-// import FooterBottom from "./components/home/Footer/FooterBottom";
 import Header from "./components/home/Header/Header";
 import HeaderBottom from "./components/home/Header/HeaderBottom";
 import SpecialCase from "./components/SpecialCase/SpecialCase";
@@ -29,6 +28,10 @@ import ProfilePage from "./pages/Profile/ProfilePages";
 import OrderDetails from "./components/OrderDetails";
 import OrderProductDetails from "./components/OrderProductDetails";
 
+// ✅ Toastify for notifications
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 // Error page
 const ErrorPage = () => {
   return (
@@ -43,8 +46,25 @@ const ErrorPage = () => {
     </div>
   );
 };
+console.log("userid:",localStorage.getItem("userid"))
+// Get userId from localStorage
+const userId = localStorage.getItem("userid") || null;
 
-// Layout components
+// Layout with header, footer, etc.
+const Layout = () => {
+  return (
+    <div className="bg-[#dcdcdc] min-h-screen">
+      <Header />
+      <HeaderBottom />
+      <SpecialCase />
+      <ScrollRestoration />
+      <Outlet />
+      <Footer />
+    </div>
+  );
+};
+
+// Simple layout (used for profile, orders, etc.)
 const SimpleLayout = () => {
   return (
     <div className="bg-[#dcdcdc] min-h-screen">
@@ -56,24 +76,10 @@ const SimpleLayout = () => {
   );
 };
 
-const Layout = () => {
-  return (
-    <div className="bg-[#dcdcdc] min-h-screen">
-      <Header />
-      <HeaderBottom />
-      <SpecialCase />
-      <ScrollRestoration />
-      <Outlet />
-      <Footer />
-      {/* <FooterBottom /> */}
-    </div>
-  );
-};
-
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      {/* Full Layout Routes */}
+      {/* Full Layout Pages */}
       <Route path="/" element={<Layout />} errorElement={<ErrorPage />}>
         <Route index element={<Home />} />
         <Route path="shop" element={<Shop />} />
@@ -81,18 +87,18 @@ const router = createBrowserRouter(
         <Route path="contact" element={<Contact />} />
         <Route path="offer" element={<Offer />} />
         <Route path="product/:id" element={<ProductDetails />} />
-        <Route path="cart" element={<Cart userId={1}/>} />
+        <Route path="cart" element={<Cart userId={userId} />} />
         <Route path="paymentgateway" element={<Payment />} />
       </Route>
 
-      {/* Simple Layout Routes */}
+      {/* Simple Layout Pages */}
       <Route element={<SimpleLayout />} errorElement={<ErrorPage />}>
         <Route path="profile" element={<ProfilePage />} />
         <Route path="orders" element={<OrderDetails />} />
         <Route path="order-product/:id" element={<OrderProductDetails />} />
       </Route>
 
-      {/* Auth Pages (No Layout) */}
+      {/* Auth Pages */}
       <Route path="signup" element={<SignUp />} errorElement={<ErrorPage />} />
       <Route path="signin" element={<SignIn />} errorElement={<ErrorPage />} />
     </Route>
@@ -102,6 +108,9 @@ const router = createBrowserRouter(
 function App() {
   return (
     <div className="font-bodyFont relative">
+      {/* ✅ Global Toast Notification Container */}
+      <ToastContainer position="top-right" autoClose={2000} />
+      
       <RouterProvider router={router} />
       <ChatBot />
     </div>

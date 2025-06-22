@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc"; // Google icon
+import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -15,23 +17,55 @@ const SignIn = () => {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  const backendUrl = "http://localhost:8080/api/auth";
 
-  const handleSignIn = (e) => {
-    e.preventDefault();
-    if (!email) setErrEmail("Enter your email");
-    if (!password) setErrPassword("Enter your password");
-    if (email && password) {
-      setSuccessMsg(`Hello! We are processing your login. Check your email at ${email}.`);
-      setEmail("");
-      setPassword("");
+ const handleSignIn = async (e) => {
+  e.preventDefault();
+  setErrEmail("");
+  setErrPassword("");
+
+  if (!email) return setErrEmail("Enter your email");
+  if (!password) return setErrPassword("Enter your password");
+
+  try {
+    const res = await fetch("http://localhost:8080/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Invalid email or password.");
     }
-  };
+
+    const { token, username, userId } = await res.json();
+    
+    setSuccessMsg("Login successful!");
+    setEmail("");
+    setPassword("");
+
+    // Store authentication details
+    localStorage.setItem("token", token);
+    localStorage.setItem("user",  username ); 
+    localStorage.setItem("userid", userId);
+
+    alert(`Login successful! Token: ${token}, Email: ${username}, ID: ${userId}`);
+    navigate("/");
+  } catch (err) {
+    console.error("Login error:", err);
+    alert(err.message || "Something went wrong. Try again later.");
+  }
+};
+
 
   const handleGoogleLogin = () => {
     alert("Google login clicked! Integrate Google Sign-In here.");
   };
 
   const handleForgot = () => setShowForgotPassword(true);
+
   const handleCancel = () => {
     setShowForgotPassword(false);
     setForgotEmail("");
@@ -41,26 +75,58 @@ const SignIn = () => {
     setNewPassword("");
     setConfirmPassword("");
   };
-  const handleVerifyEmail = () => {
-    if (forgotEmail) {
-      alert(`OTP sent to ${forgotEmail}`);
-      setOtpSent(true);
+
+  const handleVerifyEmail = async () => {
+    if (!forgotEmail) return alert("Enter your email");
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.text();
+      if (res.ok) {
+        alert(data);
+        setOtpSent(true);
+      } else {
+        alert(data);
+      }
+    } catch (err) {
+      alert("Failed to send OTP.");
     }
   };
-  const handleVerifyOtp = () => {
-    if (otp) {
-      alert("OTP verified!");
-      setShowResetPassword(true);
-    }
+
+  const handleVerifyOtp = async () => {
+    if (!otp) return alert("Enter OTP");
+
+    // Normally verify with backend
+    setShowResetPassword(true);
   };
-  const handleResetPassword = () => {
-    if (!newPassword || !confirmPassword) {
-      alert("Fill both password fields.");
-    } else if (newPassword !== confirmPassword) {
-      alert("Passwords do not match.");
-    } else {
-      alert("Password reset successfully!");
-      handleCancel();
+
+  const handleResetPassword = async () => {
+    if (!newPassword || !confirmPassword) return alert("Fill both fields");
+    if (newPassword !== confirmPassword) return alert("Passwords do not match");
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: forgotEmail,
+          otp,
+          newPassword,
+        }),
+      });
+      const data = await res.text();
+      if (res.ok) {
+        alert(data);
+        handleCancel();
+      } else {
+        alert(data);
+      }
+    } catch (err) {
+      alert("Failed to reset password.");
     }
   };
 
@@ -70,8 +136,11 @@ const SignIn = () => {
         <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur z-10"></div>
       )}
 
-      {/* Left Panel */}
-      <div className={`hidden lgl:flex w-1/2 h-full bg-black relative justify-center items-center ${showForgotPassword ? "blur-sm" : ""}`}>
+      <div
+        className={`hidden lgl:flex w-1/2 h-full bg-black relative justify-center items-center ${
+          showForgotPassword ? "blur-sm" : ""
+        }`}
+      >
         <div className="relative flex space-x-3">
           {"SIGNIN".split("").map((letter, index) => (
             <div key={index} className={`hanger swing delay-${index}`}>
@@ -82,17 +151,25 @@ const SignIn = () => {
         </div>
       </div>
 
-      {/* Right Panel (Form) */}
-      <div className={`w-full lgl:w-1/2 h-full flex items-center justify-center ${showForgotPassword ? "blur-sm" : ""}`}>
+      <div
+        className={`w-full lgl:w-1/2 h-full flex items-center justify-center ${
+          showForgotPassword ? "blur-sm" : ""
+        }`}
+      >
         {successMsg ? (
           <div className="max-w-md text-center space-y-6">
             <p className="text-green-500 font-semibold">{successMsg}</p>
             <Link to="/signup">
-              <button className="w-full py-2 bg-black text-white rounded hover:bg-gray-900">Sign Up</button>
+              <button className="w-full py-2 bg-black text-white rounded hover:bg-gray-900">
+                Sign Up
+              </button>
             </Link>
           </div>
         ) : (
-          <form className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4">
+          <form
+            className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4"
+            onSubmit={handleSignIn}
+          >
             <h1 className="text-3xl font-bold text-center text-black">Sign In</h1>
             <div>
               <label className="block text-sm font-medium">Email</label>
@@ -124,21 +201,19 @@ const SignIn = () => {
             </div>
             <button
               type="submit"
-              onClick={handleSignIn}
               className="w-full py-2 bg-black text-white rounded hover:bg-gray-900"
             >
               Sign In
             </button>
 
-            {/* Google Login Button */}
-            <button
+            {/* <button
               type="button"
               onClick={handleGoogleLogin}
               className="w-full py-2 bg-white border rounded flex items-center justify-center space-x-2 hover:bg-gray-100"
             >
               <FcGoogle className="text-xl" />
               <span className="text-black">Sign in with Google</span>
-            </button>
+            </button> */}
 
             <button
               type="button"
@@ -157,7 +232,6 @@ const SignIn = () => {
         )}
       </div>
 
-      {/* Forgot Password Modal */}
       {showForgotPassword && (
         <div className="absolute bg-white p-6 rounded shadow-lg w-80 z-20 space-y-4">
           {!showResetPassword ? (
@@ -181,15 +255,24 @@ const SignIn = () => {
               )}
               <div className="flex space-x-2">
                 {!otpSent ? (
-                  <button onClick={handleVerifyEmail} className="flex-1 bg-black text-white py-2 rounded hover:bg-gray-900">
+                  <button
+                    onClick={handleVerifyEmail}
+                    className="flex-1 bg-black text-white py-2 rounded hover:bg-gray-900"
+                  >
                     Send OTP
                   </button>
                 ) : (
-                  <button onClick={handleVerifyOtp} className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                  <button
+                    onClick={handleVerifyOtp}
+                    className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600"
+                  >
                     Verify OTP
                   </button>
                 )}
-                <button onClick={handleCancel} className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
+                >
                   Cancel
                 </button>
               </div>
@@ -212,10 +295,16 @@ const SignIn = () => {
                 className="w-full p-2 border rounded"
               />
               <div className="flex space-x-2">
-                <button onClick={handleResetPassword} className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600">
+                <button
+                  onClick={handleResetPassword}
+                  className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600"
+                >
                   Reset
                 </button>
-                <button onClick={handleCancel} className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
+                >
                   Cancel
                 </button>
               </div>
@@ -224,7 +313,6 @@ const SignIn = () => {
         </div>
       )}
 
-      {/* Custom CSS Animations */}
       <style>{`
         .hanger {
           display: flex;

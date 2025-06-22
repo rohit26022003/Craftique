@@ -5,19 +5,31 @@ const Category = ({ setSelectedCategory }) => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/unique-categories");
-        const data = await response.json();
-        setCategories(data.length ? data : ["No categories found"]);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        setCategories(["Failed to load categories"]);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    fetchCategories();
-  }, []);
+      const response = await fetch("http://localhost:8080/api/unique-categories", {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCategories(data.length ? data : ["No categories found"]);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories(["Failed to load categories"]);
+    }
+  };
+
+  fetchCategories();
+}, []);
+
 
   return (
     <div className="w-full">

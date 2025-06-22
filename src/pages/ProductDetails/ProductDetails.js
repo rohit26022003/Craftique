@@ -44,7 +44,7 @@ const ProductDetails = () => {
             <div className="h-full xl:col-span-2 relative">
               {/* Back Arrow */}
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/shop")}
                 className="absolute top-2 left-2 text-4xl font-bold text-gray-800 hover:text-black z-10 bg-white rounded-full p-1"
                 title="Go back"
               >

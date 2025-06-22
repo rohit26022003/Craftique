@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactPaginate from "react-paginate";
+import { useNavigate } from "react-router-dom"; 
 
 const Pagination = ({ itemsPerPage, selectedCategory, selectedPriceRange, products }) => {
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -18,22 +19,32 @@ const Pagination = ({ itemsPerPage, selectedCategory, selectedPriceRange, produc
   const endOffset = itemOffset + itemsPerPage;
   const currentItems = filteredProducts.slice(itemOffset, endOffset);
   const pageCount = Math.ceil(filteredProducts.length / itemsPerPage);
-
+  const navigate = useNavigate();
   const handlePageClick = (event) => {
     setItemOffset(event.selected * itemsPerPage);
   };
-
+  const token = localStorage.getItem("token");
   // Add product to cart (Store in Database)
   const addToCart = async (item) => {
+    if (!token) {
+      alert("Please log in to add items to your cart.");
+      navigate("/signin");
+      return;
+    }
+    if(item.stock === 0){
+         alert("product is out of stock")
+         return;
+    }
     try {
       const response = await fetch("http://localhost:8080/api/cart/additem", {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
          productId: item.id,
-          userId: 1,
+          userId: localStorage.getItem("userid"),
           name: item.name,
           price: item.price,
           quantity: 1,

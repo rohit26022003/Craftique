@@ -1,80 +1,111 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc"; // Google icon
+import { Link, useNavigate } from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { ToastContainer } from 'react-toastify';
 
 const SignUp = () => {
-  const [clientName, setClientName] = useState("");
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [checked, setChecked] = useState(false);
 
-  const [errClientName, setErrClientName] = useState("");
+  const [errUsername, setErrUsername] = useState("");
   const [errEmail, setErrEmail] = useState("");
   const [errPhone, setErrPhone] = useState("");
   const [errPassword, setErrPassword] = useState("");
 
-  const [successMsg, setSuccessMsg] = useState("");
-
-  const handleName = (e) => {
-    setClientName(e.target.value);
-    setErrClientName("");
-  };
-  const handleEmail = (e) => {
-    setEmail(e.target.value);
-    setErrEmail("");
-  };
-  const handlePhone = (e) => {
-    setPhone(e.target.value);
-    setErrPhone("");
-  };
-  const handlePassword = (e) => {
-    setPassword(e.target.value);
-    setErrPassword("");
-  };
-
-  const EmailValidation = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
-  };
-
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    if (checked) {
-      if (!clientName) setErrClientName("Enter your name");
-      if (!email) setErrEmail("Enter your email");
-      else if (!EmailValidation(email)) setErrEmail("Enter a valid email");
-      if (!phone) setErrPhone("Enter your phone number");
-      if (!password) setErrPassword("Create a password");
-      else if (password.length < 6)
-        setErrPassword("Passwords must be at least 6 characters");
 
-      if (
-        clientName &&
-        email &&
-        EmailValidation(email) &&
-        password &&
-        password.length >= 6
-      ) {
-        setSuccessMsg(
-          `Hello dear ${clientName}, Welcome to OREBI Admin panel. We received your Sign up request. We are processing to validate your access. Till then stay connected and additional assistance will be sent to you by your mail at ${email}`
-        );
-        setClientName("");
+    let hasError = false;
+    setErrUsername("");
+    setErrEmail("");
+    setErrPhone("");
+    setErrPassword("");
+
+    if (!username) {
+      setErrUsername("Enter your username");
+      hasError = true;
+    }
+
+    if (!email) {
+      setErrEmail("Enter your email");
+      hasError = true;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setErrEmail("Invalid email format");
+      hasError = true;
+    }
+
+    if (!phone) {
+      setErrPhone("Enter your phone number");
+      hasError = true;
+    } else if (!/^\d{10}$/.test(phone)) {
+      setErrPhone("Enter a valid 10-digit phone number");
+      hasError = true;
+    }
+
+    if (!password) {
+      setErrPassword("Create a password");
+      hasError = true;
+    } else if (password.length < 6) {
+      setErrPassword("Passwords must be at least 6 characters");
+      hasError = true;
+    }
+
+    if (!checked) {
+      toast.error("You must agree to the terms of service");
+      return;
+    }
+
+    if (!hasError) {
+      try {
+        const response = await axios.post("http://localhost:8080/api/auth/register", {
+          username,
+          email,
+          phone,
+          password,
+        });
+
+        toast.success(`Hello ${username}, your account was created successfully!`, {
+          autoClose: 2000,
+        });
+
+        // Clear form
+        setUsername("");
         setEmail("");
         setPhone("");
         setPassword("");
+
+        // Redirect to sign-in page after short delay
+        setTimeout(() => {
+          navigate("/signin");
+        }, 2000);
+      } catch (error) {
+        console.error("Error signing up:", error);
+        if (error.response && error.response.data) {
+          toast.error(error.response.data.message || "Signup failed", {
+            autoClose: 3000,
+          });
+        } else {
+          toast.error("Something went wrong. Please try again.");
+        }
       }
     }
   };
 
   const handleGoogleLogin = () => {
-    console.log("Google login clicked");
-    // 👉 You can integrate Firebase or backend Google OAuth here
+    toast.info("Google login not implemented yet");
   };
 
   return (
     <div className="w-full h-screen flex items-center justify-start bg-gray-100">
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <div className="hidden lgl:flex w-[40%] h-full bg-black relative justify-center items-center">
         <div className="relative flex space-x-3">
           {"SIGNUP".split("").map((letter, index) => (
@@ -87,165 +118,105 @@ const SignUp = () => {
       </div>
 
       <div className="w-full lgl:w-[60%] h-full flex flex-col justify-center items-center">
-        {successMsg ? (
-          <div className="w-full max-w-[400px] bg-white rounded-lg shadow-md p-6">
-            <p className="w-full text-green-500 font-medium font-titleFont mb-4">
-              {successMsg}
-            </p>
-            <Link to="/signin">
-              <button className="w-full h-10 bg-primeColor rounded-md text-gray-200 text-base font-titleFont font-semibold tracking-wide hover:bg-black hover:text-white duration-300">
-                Sign in
-              </button>
-            </Link>
-          </div>
-        ) : (
-          <form className="w-full max-w-[400px] bg-white rounded-lg shadow-md p-6">
-            <div className="w-full flex flex-col justify-start overflow-y-auto">
-              <h1 className="font-titleFont underline underline-offset-4 decoration-[1px] font-semibold text-2xl mdl:text-3xl mb-4">
-                Create your account
-              </h1>
-              <div className="flex flex-col gap-3">
-                {/* Full Name */}
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-titleFont text-base font-semibold text-gray-600">
-                    Full Name
-                  </p>
-                  <input
-                    onChange={handleName}
-                    value={clientName}
-                    className="w-full h-8 placeholder:text-sm placeholder:tracking-wide px-4 text-base font-medium placeholder:font-normal rounded-md border-[1px] border-gray-400 outline-none"
-                    type="text"
-                    placeholder="Your Full Name"
-                  />
-                  {errClientName && (
-                    <p className="text-sm text-red-500 font-titleFont font-semibold px-4">
-                      <span className="font-bold italic mr-1">!</span>
-                      {errClientName}
-                    </p>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-titleFont text-base font-semibold text-gray-600">
-                    Enter Email
-                  </p>
-                  <input
-                    onChange={handleEmail}
-                    value={email}
-                    className="w-full h-8 placeholder:text-sm placeholder:tracking-wide px-4 text-base font-medium placeholder:font-normal rounded-md border-[1px] border-gray-400 outline-none"
-                    type="email"
-                    placeholder="email@.com"
-                  />
-                  {errEmail && (
-                    <p className="text-sm text-red-500 font-titleFont font-semibold px-4">
-                      <span className="font-bold italic mr-1">!</span>
-                      {errEmail}
-                    </p>
-                  )}
-                </div>
-
-                {/* Phone Number */}
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-titleFont text-base font-semibold text-gray-600">
-                    Phone Number
-                  </p>
-                  <input
-                    onChange={handlePhone}
-                    value={phone}
-                    className="w-full h-8 placeholder:text-sm placeholder:tracking-wide px-4 text-base font-medium placeholder:font-normal rounded-md border-[1px] border-gray-400 outline-none"
-                    type="text"
-                    placeholder="Enter Phone Number"
-                  />
-                  {errPhone && (
-                    <p className="text-sm text-red-500 font-titleFont font-semibold px-4">
-                      <span className="font-bold italic mr-1">!</span>
-                      {errPhone}
-                    </p>
-                  )}
-                </div>
-
-                {/* Password */}
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-titleFont text-base font-semibold text-gray-600">
-                    Password
-                  </p>
-                  <input
-                    onChange={handlePassword}
-                    value={password}
-                    className="w-full h-8 placeholder:text-sm placeholder:tracking-wide px-4 text-base font-medium placeholder:font-normal rounded-md border-[1px] border-gray-400 outline-none"
-                    type="password"
-                    placeholder="Create Password"
-                  />
-                  {errPassword && (
-                    <p className="text-sm text-red-500 font-titleFont font-semibold px-4">
-                      <span className="font-bold italic mr-1">!</span>
-                      {errPassword}
-                    </p>
-                  )}
-                </div>
-
-                {/* Checkbox */}
-                <div className="flex items-start mdl:items-center gap-2">
-                  <input
-                    onChange={() => setChecked(!checked)}
-                    className="w-4 h-4 mt-1 mdl:mt-0 cursor-pointer"
-                    type="checkbox"
-                  />
-                  <p className="text-sm text-primeColor">
-                    I agree to the Hand-Craft{" "}
-                    <span className="text-blue-500">Terms of Service </span>and{" "}
-                    <span className="text-blue-500">Privacy Policy</span>.
-                  </p>
-                </div>
-
-                {/* Create Account Button */}
-                <button
-                  onClick={handleSignUp}
-                  className={`${
-                    checked
-                      ? "bg-primeColor hover:bg-black hover:text-white cursor-pointer"
-                      : "bg-gray-500 hover:bg-gray-500 hover:text-gray-200 cursor-not-allowed"
-                  } w-full text-gray-200 text-base font-medium h-10 rounded-md hover:text-white duration-300`}
-                >
-                  Create Account
-                </button>
-
-                {/* Divider */}
-                <div className="flex items-center my-2">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="mx-2 text-sm text-gray-500">or</span>
-                  <div className="flex-grow border-t border-gray-300"></div>
-                </div>
-
-                {/* Google Login Button */}
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  className="flex items-center justify-center gap-2 w-full border border-gray-400 rounded-md h-10 hover:bg-gray-100 duration-300"
-                >
-                  <FcGoogle size={22} />
-                  <span className="text-sm font-medium text-gray-600">
-                    Continue with Google
-                  </span>
-                </button>
-
-                {/* Sign in Link */}
-                <p className="text-sm text-center font-titleFont font-medium mt-2">
-                  Already have an Account?{" "}
-                  <Link to="/signin">
-                    <span className="hover:text-blue-600 duration-300">
-                      Sign in
-                    </span>
-                  </Link>
-                </p>
-              </div>
+        <form className="w-full max-w-[400px] bg-white rounded-lg shadow-md p-6">
+          <h1 className="font-titleFont underline text-2xl mb-4">Create your account</h1>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col">
+              <p className="font-semibold text-gray-600">Username</p>
+              <input
+                type="text"
+                placeholder="Enter Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="input-box"
+              />
+              {errUsername && <p className="text-red-500 text-sm">{errUsername}</p>}
             </div>
-          </form>
-        )}
+
+            <div className="flex flex-col">
+              <p className="font-semibold text-gray-600">Email</p>
+              <input
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input-box"
+              />
+              {errEmail && <p className="text-red-500 text-sm">{errEmail}</p>}
+            </div>
+
+            <div className="flex flex-col">
+              <p className="font-semibold text-gray-600">Phone Number</p>
+              <input
+                type="text"
+                placeholder="Enter Phone Number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="input-box"
+              />
+              {errPhone && <p className="text-red-500 text-sm">{errPhone}</p>}
+            </div>
+
+            <div className="flex flex-col">
+              <p className="font-semibold text-gray-600">Password</p>
+              <input
+                type="password"
+                placeholder="Create Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-box"
+              />
+              {errPassword && <p className="text-red-500 text-sm">{errPassword}</p>}
+            </div>
+
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => setChecked(!checked)}
+                className="mt-1"
+              />
+              <p className="text-sm">
+                I agree to the{" "}
+                <span className="text-blue-500">Terms of Service</span> and{" "}
+                <span className="text-blue-500">Privacy Policy</span>.
+              </p>
+            </div>
+
+            <button
+              onClick={handleSignUp}
+              className={`${
+                checked ? "bg-primeColor hover:bg-black" : "bg-gray-500 cursor-not-allowed"
+              } text-white font-medium h-10 rounded-md duration-300`}
+            >
+              Create Account
+            </button>
+
+            <div className="flex items-center my-2">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="mx-2 text-sm text-gray-500">or</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            {/* <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="flex items-center justify-center gap-2 border border-gray-400 rounded-md h-10 hover:bg-gray-100 duration-300"
+            >
+              <FcGoogle size={22} />
+              <span className="text-sm text-gray-600">Continue with Google</span>
+            </button> */}
+
+            <p className="text-sm text-center mt-2">
+              Already have an account?{" "}
+              <Link to="/signin" className="text-blue-600 hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
 
-      {/* Custom CSS Animations */}
       <style>{`
         .hanger {
           display: flex;
@@ -277,6 +248,15 @@ const SignUp = () => {
         .delay-3 { animation-delay: 0.3s; }
         .delay-4 { animation-delay: 0.4s; }
         .delay-5 { animation-delay: 0.5s; }
+        .input-box {
+          width: 100%;
+          height: 32px;
+          padding: 0 10px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 14px;
+          outline: none;
+        }
       `}</style>
     </div>
   );

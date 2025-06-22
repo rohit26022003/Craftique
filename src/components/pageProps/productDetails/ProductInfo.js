@@ -10,12 +10,14 @@ const ProductInfo = ({ productInfo }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch product reviews dynamically from the backend
+  // Fetch product reviews from backend
   useEffect(() => {
     if (productInfo?.id) {
       const fetchReviews = async () => {
         try {
-          const response = await fetch(`http://localhost:8080/api/reviews/${productInfo.id}`);
+          const response = await fetch(
+            `http://localhost:8080/api/reviews/product/${productInfo.id}`
+          );
           if (!response.ok) throw new Error("Reviews not found.");
           const data = await response.json();
           setReviews(data);
@@ -30,21 +32,31 @@ const ProductInfo = ({ productInfo }) => {
     }
   }, [productInfo]);
 
-  // Handle adding product to cart and storing it in the database
+  // Handle add to cart logic
   const handleAddToCart = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please log in to add items to your cart.");
+        navigate("/signin");
+        return;
+      }
+      if(productInfo.stock === 0){
+         alert("product is out of stock")
+         return;
+    }
       const response = await fetch("http://localhost:8080/api/cart/additem", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           productId: productInfo.id,
-          userId: 1,
           name: productInfo.name,
           price: productInfo.price,
           quantity: 1,
-          imagePath: productInfo.imagePath
+          imagePath: productInfo.imagePath,
         }),
       });
 
@@ -52,6 +64,8 @@ const ProductInfo = ({ productInfo }) => {
         dispatch(addToCart({ ...productInfo, quantity: 1 }));
         alert(`${productInfo.name} added to cart!`);
       } else {
+        const errorData = await response.json();
+        console.error("Server error:", errorData);
         alert("Failed to add product to cart.");
       }
     } catch (error) {
@@ -78,12 +92,12 @@ const ProductInfo = ({ productInfo }) => {
             Add to Cart 🛒
           </button>
 
-          {/* Product Categories */}
           <p className="font-normal text-sm">
-            <span className="text-base font-medium">Categories:</span> {productInfo.category} Women
+            <span className="text-base font-medium">Categories:</span>{" "}
+            {productInfo.category} Women
           </p>
 
-          {/* Display Reviews Section */}
+          {/* Display Reviews */}
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
             {loading ? (
@@ -96,14 +110,7 @@ const ProductInfo = ({ productInfo }) => {
               <div className="flex flex-col gap-4">
                 {reviews.map((review) => (
                   <div key={review.id} className="border-b pb-2">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold">{review.name}</p>
-                      <div className="flex text-yellow-500">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i}>{i < review.rating ? "★" : "☆"}</span>
-                        ))}
-                      </div>
-                    </div>
+                    <p className="font-semibold">{review.userName || "Anonymous"}</p>
                     <p className="text-sm text-gray-700">{review.comment}</p>
                   </div>
                 ))}

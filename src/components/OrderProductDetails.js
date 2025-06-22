@@ -2,24 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MDBContainer, MDBCardImage } from 'mdb-react-ui-kit';
 import { FaCheckCircle, FaRegCircle, FaStar } from 'react-icons/fa';
-
-const products = [
-  {
-    id: 1,
-    name: 'iPhone 14 Pro Max',
-    color: 'White',
-    price: '₹255,555',
-    image: 'https://mdbcdn.b-cdn.net/img/Photos/Horizontal/E-commerce/Products/13.webp',
-    phone: ['7044349782'],
-    address: 'Kolkata, West Bengal, India',
-    receiptNo: '1KAU9-84UIL',
-  }
-];
+import axios from 'axios';
 
 export default function OrderProductDetails() {
-  const { id } = useParams();
-  const product = products.find(item => item.id === parseInt(id));
-
+  const { id } = useParams(); // orderId
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
   const stages = ['Order Placed', 'Processing', 'Shipping', 'Delivered'];
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [rating, setRating] = useState(0);
@@ -27,92 +15,130 @@ export default function OrderProductDetails() {
   const [review, setReview] = useState('');
 
   useEffect(() => {
-    const fetchOrderStatus = () => {
-      const mockStatus = 'Shipping'; // Simulated API response
-      const stageIndex = stages.findIndex(stage => stage === mockStatus);
-      setCurrentStageIndex(stageIndex !== -1 ? stageIndex : 0);
+    const fetchOrder = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`http://localhost:8080/api/order/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setOrder(response.data);
+      } catch (error) {
+        console.error('Error fetching order:', error);
+      } finally {
+        setLoading(false);
+      }
     };
-    const timer = setTimeout(fetchOrderStatus, 1000);
-    return () => clearTimeout(timer);
+
+    fetchOrder();
+  }, [id]);
+
+  useEffect(() => {
+    const mockStatus = 'Shipping'; // This should ideally come from order.status
+    const index = stages.findIndex(stage => stage === mockStatus);
+    setCurrentStageIndex(index !== -1 ? index : 0);
   }, []);
 
   const handleRatingClick = (index) => setRating(index);
-  const handleReviewSubmit = () => {
-    console.log('Rating:', rating);
-    console.log('Review:', review);
+  const handleReviewSubmit = async () => {
+  const token = localStorage.getItem('token');
+  const productId = item.productId;
+
+  try {
+    // Post rating
+    await axios.post(
+      `http://localhost:8080/api/rating/product/${productId}`,
+      { value: rating },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    // Post review
+    await axios.post(
+      `http://localhost:8080/api/review/product/${productId}`,
+      { comment: review,
+        userName:localStorage.getItem("user")
+       },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
     alert('Thank you for your review!');
     setRating(0);
     setReview('');
-  };
+  } catch (error) {
+    console.error('Failed to submit review and rating:', error);
+    alert('Failed to submit review.');
+  }
+};
 
-  if (!product) {
+
+  if (loading) {
     return (
       <MDBContainer className="py-5 text-center">
-        <h2>Product Not Found</h2>
-        <p>The product you are trying to view does not exist.</p>
+        <h4>Loading order details...</h4>
       </MDBContainer>
     );
   }
 
+  if (!order || !order.orderItems?.length) {
+    return (
+      <MDBContainer className="py-5 text-center">
+        <h2>Order Not Found</h2>
+        <p>No order found with ID {id}.</p>
+      </MDBContainer>
+    );
+  }
+
+  const item = order.orderItems[0]; // assuming one item per order
+  const img = item.imgpath || 'https://via.placeholder.com/200';
+
   return (
     <MDBContainer className="py-5">
-      {/* Back Arrow Link */}
+      {/* Back Button */}
       <div className="mb-4">
-        <Link
-          to="/orders"
-          style={{
-            textDecoration: 'none',
-            background: 'none',
-            color: '#000000',
-            fontSize: '32px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'transform 0.3s ease, color 0.3s ease',
-          }}
-        >
+        <Link to="/orders" style={{ textDecoration: 'none', fontSize: '32px', fontWeight: 'bold', color: '#000' }}>
           ←
         </Link>
       </div>
 
-      {/* Product Details Section */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.1))',
-          borderRadius: '12px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-          color: '#f1f1f1',
-          padding: '20px',
-          gap: '20px',
-          marginTop: '20px',
-        }}
-      >
+      {/* Order Product Display */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        background: '#1e1e1e',
+        color: '#f0f0f0',
+        padding: '20px',
+        borderRadius: '12px',
+        gap: '20px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+      }}>
         {/* Left Section */}
         <div style={{ flex: '3 1 60%', minWidth: '300px' }}>
           <div style={{ display: 'flex', gap: '20px' }}>
             <MDBCardImage
-              src={product.image}
-              alt={product.name}
-              style={{
-                width: '160px',
-                height: '200px',
-                objectFit: 'cover',
-                borderRadius: '10px',
-                border: '2px solid #444',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-              }}
+              src={img}
+              alt={`Product ${item.productId}`}
+              style={{ width: '160px', height: '200px', borderRadius: '10px', objectFit: 'cover' }}
             />
             <div>
-              <h4 style={{ marginBottom: '8px', fontSize: '20px' }}>{product.name}</h4>
-              <p style={{ margin: '5px 0' }}><strong>Color:</strong> {product.color}</p>
-              <p style={{ margin: '5px 0' }}><strong>Seller:</strong> Flipkart Retail</p>
-              <p style={{ fontWeight: 'bold', fontSize: '22px' }}>{product.price}</p>
+              <h4 style={{ marginBottom: '8px' }}>Product ID: {item.productId}</h4>
+              <p><strong>Quantity:</strong> {item.quantity}</p>
+              <p><strong>Price:</strong> ₹{item.price}</p>
+              <p><strong>Order ID:</strong> {order.orderId}</p>
             </div>
           </div>
 
-          {/* Review and Rating Section */}
+          {/* Review Section */}
           <div style={{ marginTop: '30px' }}>
             <h5 className="mb-3">Rate & Review</h5>
             <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
@@ -139,9 +165,7 @@ export default function OrderProductDetails() {
                 borderRadius: '6px',
                 border: '1px solid #ccc',
                 backgroundColor: '#fff',
-                color: '#000',
-                resize: 'none',
-                marginBottom: '10px',
+                color: '#000'
               }}
             />
             <button
@@ -149,43 +173,34 @@ export default function OrderProductDetails() {
               style={{
                 backgroundColor: '#ffc107',
                 color: '#000',
-                border: 'none',
                 padding: '8px 16px',
+                border: 'none',
                 borderRadius: '6px',
                 fontWeight: 'bold',
-                cursor: 'pointer',
+                marginTop: '10px'
               }}
             >
               Submit Review
             </button>
           </div>
 
-          {/* Tracking Section */}
+          {/* Tracking Progress */}
           <div style={{ marginTop: '40px' }}>
             <h5 className="mb-4">Track Product</h5>
             <div style={{ position: 'relative', paddingTop: '40px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  position: 'relative',
-                  zIndex: 1,
-                }}
-              >
+              <div style={{ display: 'flex', justifyContent: 'space-between', zIndex: 1, position: 'relative' }}>
                 {stages.map((stage, index) => (
                   <div key={index} style={{ textAlign: 'center', flex: 1 }}>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        margin: '0 auto',
-                        borderRadius: '50%',
-                        backgroundColor: index <= currentStageIndex ? '#28a745' : '#777',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
+                    <div style={{
+                      width: '42px',
+                      height: '42px',
+                      margin: '0 auto',
+                      borderRadius: '50%',
+                      backgroundColor: index <= currentStageIndex ? '#28a745' : '#777',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
                       {index <= currentStageIndex ? (
                         <FaCheckCircle color="#fff" size={18} />
                       ) : (
@@ -196,44 +211,38 @@ export default function OrderProductDetails() {
                   </div>
                 ))}
               </div>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '58px',
-                  left: '0',
-                  right: '0',
-                  height: '4px',
-                  backgroundColor: '#28a745',
-                  zIndex: 0,
-                }}
-              />
+              <div style={{
+                position: 'absolute',
+                top: '58px',
+                left: '0',
+                right: '0',
+                height: '4px',
+                backgroundColor: '#28a745',
+                zIndex: 0
+              }} />
             </div>
           </div>
         </div>
 
         {/* Right Section */}
-        <div
-          style={{
-            flex: '2 1 35%',
-            backgroundColor: 'rgba(43, 43, 43, 0.8)',
-            padding: '20px',
-            borderRadius: '12px',
-            border: '1px solid #555',
-            color: '#d3d3d3',
-            minWidth: '250px',
-          }}
-        >
+        <div style={{
+          flex: '2 1 35%',
+          backgroundColor: '#2b2b2b',
+          padding: '20px',
+          borderRadius: '12px',
+          color: '#e1e1e1',
+          minWidth: '250px'
+        }}>
           <h5 className="mb-3">Shipping Details</h5>
           <p>
-            <strong>Rohit Shrivastava</strong><br />
-            {product.address}<br />
-            <strong>Phone:</strong> {product.phone.join(', ')}
+            <strong>Shipping Address:</strong><br />
+            {order.shippingAddress}
           </p>
-
           <hr style={{ borderColor: '#444' }} />
-
-          <h5 className="mb-2">Total Price</h5>
-          <p style={{ fontWeight: 'bold', fontSize: '18px' }}>{product.price}</p>
+          <h5 className="mb-2">Total Amount</h5>
+          <p style={{ fontWeight: 'bold', fontSize: '18px' }}>₹{order.totalAmount}</p>
+          <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
+          <p><strong>Payment Status:</strong> {order.paymentStatus}</p>
         </div>
       </div>
     </MDBContainer>
